@@ -19,7 +19,7 @@ func (rsa *ServerRestAgent) GetBallot() map[string]*ballotAgent {
 	return rsa.ballotAgents
 }
 
-func NewBallotAgent(ballotID string, rulename string, deadline time.Time, voterID []string, alts []comsoc.Alternative, tiebreak []comsoc.Alternative) *ballotAgent {
+func NewBallotAgent(ballotID string, rulename string, deadline time.Time, voterID map[string]bool, alts []comsoc.Alternative, tiebreak []comsoc.Alternative) *ballotAgent {
 	return &ballotAgent{ballotID: ballotID, rulename: rulename, deadline: deadline, voterID: voterID, alternatives: alts, tiebreak: tiebreak}
 }
 
@@ -47,7 +47,9 @@ func (*ServerRestAgent) decodeRequestVote(r *http.Request) (req rad.VoteRequest,
 }
 
 func (rsa *ServerRestAgent) newBallotRest(w http.ResponseWriter, r *http.Request) {
-	log.Println(rsa.GetBallot())
+	//log.Println(rsa.GetBallot())
+	log.Println(rsa.ballotAgents["scurtinNum0"])
+
 	// vérification de la méthode de la requête ->ici on veut un POST
 	if !rsa.checkMethod("POST", w, r) {
 		return
@@ -76,8 +78,12 @@ func (rsa *ServerRestAgent) newBallotRest(w http.ResponseWriter, r *http.Request
 	rsa.Lock()
 	defer rsa.Unlock()
 	ballotName := fmt.Sprintf("scurtinNum%d", rsa.count)
-	log.Println(ballotName)
-	newBallot := *NewBallotAgent(ballotName, req.Rule, deadline, req.VoterIds, make([]comsoc.Alternative, 0), req.TieBreak)
+	voterIDMap := make(map[string]bool)
+	for _, name := range req.VoterIds {
+		voterIDMap[name] = false
+	}
+
+	newBallot := *NewBallotAgent(ballotName, req.Rule, deadline, voterIDMap, make([]comsoc.Alternative, 0), req.TieBreak)
 	for i := int64(0); i < req.Alts; i++ {
 		newBallot.alternatives = append(newBallot.alternatives, comsoc.Alternative(i))
 	}
@@ -131,6 +137,38 @@ func (rsa *ServerRestAgent) vote(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
+	var ballotWanted *ballotAgent = rsa.ballotAgents[req.BallotID]
+
+	if ballotWanted.deadline.Before(time.Now()) {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		return
+	}
+
+	//Regarder si l'agent peut voter
+	log.Println("agent : ", req.AgentID)
+	if value, exists := ballotWanted.voterID[req.AgentID]; exists {
+		if value == true {
+			w.WriteHeader(http.StatusForbidden)
+			return
+		}
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	//Regarder si l'agent a bien donné ses préférences
+	if comsoc.CheckProfile(req.Prefs, ballotWanted.alternatives) != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	//Ajour les preferences du votant au Profile du vote
+	ballotWanted.profile = append(ballotWanted.profile, req.Prefs)
+	log.Println(ballotWanted.profile)
+	//Indiquer que l'agent a voté
+	ballotWanted.voterID[req.AgentID] = true
+	w.WriteHeader(http.StatusOK)
 
 }
 

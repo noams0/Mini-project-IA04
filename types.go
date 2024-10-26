@@ -20,9 +20,9 @@ type NewBallotRequest struct {
 }
 
 type VoteRequest struct {
-	AgentID  string `json:"agent-id"`
-	BallotID string `json:"ballot-id"`
-	Prefs    []int  `json:"prefs"`
+	AgentID  string               `json:"agent-id"`
+	BallotID string               `json:"ballot-id"`
+	Prefs    []comsoc.Alternative `json:"prefs"`
 	//options  []comsoc.Alternative `json:"tie-break"`
 }
 
