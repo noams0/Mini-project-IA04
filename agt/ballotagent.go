@@ -46,9 +46,14 @@ func (*ServerRestAgent) decodeRequestVote(r *http.Request) (req rad.VoteRequest,
 	return
 }
 
+func (*ServerRestAgent) decodeRequestResult(r *http.Request) (req rad.ResultsRequest, err error) {
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(r.Body)
+	err = json.Unmarshal(buf.Bytes(), &req)
+	return
+}
+
 func (rsa *ServerRestAgent) newBallotRest(w http.ResponseWriter, r *http.Request) {
-	//log.Println(rsa.GetBallot())
-	log.Println(rsa.ballotAgents["scurtinNum0"])
 
 	// vérification de la méthode de la requête ->ici on veut un POST
 	if !rsa.checkMethod("POST", w, r) {
@@ -57,7 +62,6 @@ func (rsa *ServerRestAgent) newBallotRest(w http.ResponseWriter, r *http.Request
 
 	// décodage de la requête
 	req, err := rsa.decodeRequestBallot(r)
-	log.Println(req)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, err.Error())
@@ -94,13 +98,17 @@ func (rsa *ServerRestAgent) newBallotRest(w http.ResponseWriter, r *http.Request
 	}
 	switch req.Rule {
 	case "majority":
-		newBallot.rule = comsoc.SWFFactory(comsoc.MajoritySWF, comsoc.TieBreakFactory(req.TieBreak))
+		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.MajoritySWF, comsoc.TieBreakFactory(req.TieBreak))
+		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.MajoritySCF, comsoc.TieBreakFactory(req.TieBreak))
 	case "borda":
-		newBallot.rule = comsoc.SWFFactory(comsoc.BordaSWF, comsoc.TieBreakFactory(req.TieBreak))
+		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.BordaSWF, comsoc.TieBreakFactory(req.TieBreak))
+		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.BordaSCF, comsoc.TieBreakFactory(req.TieBreak))
 	case "copeland":
-		newBallot.rule = comsoc.SWFFactory(comsoc.CopelandSWF, comsoc.TieBreakFactory(req.TieBreak))
+		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.CopelandSWF, comsoc.TieBreakFactory(req.TieBreak))
+		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.CopelandSCF, comsoc.TieBreakFactory(req.TieBreak))
 	default:
 		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "Méthode de vote non connu")
 		return
 	}
 	rsa.ballotAgents[newBallot.ballotID] = &newBallot
@@ -109,7 +117,7 @@ func (rsa *ServerRestAgent) newBallotRest(w http.ResponseWriter, r *http.Request
 	resp.BallotID = ballotName
 	rsa.count++
 	w.WriteHeader(http.StatusCreated)
-	serial, _ := json.Marshal(resp) //la serialization qu'on a pas encore vu en cours
+	serial, _ := json.Marshal(resp)
 	w.Write(serial)
 }
 
@@ -121,7 +129,6 @@ func (rsa *ServerRestAgent) vote(w http.ResponseWriter, r *http.Request) {
 
 	// décodage de la requête
 	req, err := rsa.decodeRequestVote(r)
-	log.Println(req)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, err.Error())
@@ -134,7 +141,7 @@ func (rsa *ServerRestAgent) vote(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if balloPos == "" {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotImplemented)
 		return
 	}
 
@@ -153,22 +160,75 @@ func (rsa *ServerRestAgent) vote(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
+		fmt.Fprint(w, "L'agent n'est pas autorisé à voter")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	//Regarder si l'agent a bien donné ses préférences
 	if comsoc.CheckProfile(req.Prefs, ballotWanted.alternatives) != nil {
+		fmt.Fprint(w, "Le bulletin n'est pas correcte")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	//Ajour les preferences du votant au Profile du vote
 	ballotWanted.profile = append(ballotWanted.profile, req.Prefs)
-	log.Println(ballotWanted.profile)
 	//Indiquer que l'agent a voté
 	ballotWanted.voterID[req.AgentID] = true
 	w.WriteHeader(http.StatusOK)
+
+}
+
+func (rsa *ServerRestAgent) results(w http.ResponseWriter, r *http.Request) {
+	// vérification de la méthode de la requête ->ici on veut un POST
+	if !rsa.checkMethod("POST", w, r) {
+		return
+	}
+
+	// décodage de la requête
+	req, err := rsa.decodeRequestResult(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, err.Error())
+		return
+	}
+
+	balloPos := ""
+	for i, b := range rsa.ballotAgents {
+		if b.ballotID == req.BallotID {
+			balloPos = i
+		}
+	}
+	if balloPos == "" {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	var ballotWanted *ballotAgent = rsa.ballotAgents[req.BallotID]
+
+	if len(ballotWanted.profile) == 0 {
+		w.WriteHeader(http.StatusTeapot)
+		fmt.Fprint(w, "Personne n'a voté :(")
+
+		return
+	}
+
+	if ballotWanted.deadline.After(time.Now()) {
+		w.WriteHeader(http.StatusTooEarly)
+		return
+	}
+
+	ranking, _ := ballotWanted.ruleSWF(ballotWanted.profile)
+	winner, _ := ballotWanted.ruleSCF(ballotWanted.profile)
+
+	var resp rad.ResultResponse
+	resp.Ranking = ranking
+	resp.Winner = winner
+
+	serial, _ := json.Marshal(resp)
+	w.WriteHeader(http.StatusOK)
+	w.Write(serial)
 
 }
 
@@ -177,6 +237,7 @@ func (rsa *ServerRestAgent) Start() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/new_ballot", rsa.newBallotRest)
 	mux.HandleFunc("/vote", rsa.vote)
+	mux.HandleFunc("/results", rsa.results)
 
 	// création du serveur http
 	s := &http.Server{

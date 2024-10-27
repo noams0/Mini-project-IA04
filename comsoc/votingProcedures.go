@@ -1,5 +1,10 @@
 package comsoc
 
+import (
+	"log"
+	"sort"
+)
+
 func SWF(p Profile) (count Count, err error) {
 	count = make(Count)                      // Initialiser le décompte
 	candid := make([]Alternative, len(p[0])) // Alternatives candidates
@@ -31,17 +36,29 @@ func SWFFactory(swf func(p Profile) (Count, error), tieBreak func([]Alternative)
 		if err != nil {
 			return nil, err
 		}
+		alts := make([]Alternative, 0, len(count))
 
-		maxCount := MaxCount(count)
-		if len(maxCount) == 1 {
-			return maxCount, nil
+		// Ajoutez les clés de count dans le slice
+		for alt := range count {
+			alts = append(alts, alt)
 		}
 
-		winner, err := tieBreak(maxCount)
-		if err != nil {
-			return nil, err
-		}
-		return []Alternative{winner}, nil
+		// Tri par ordre décroissant de valeurs de count, avec résolution des égalités
+		sort.SliceStable(alts, func(i, j int) bool {
+			if count[alts[i]] != count[alts[j]] {
+				return count[alts[i]] > count[alts[j]]
+			}
+			// Cas d'égalité : on utilise tieBreak pour départager
+			log.Println(alts[i])
+			log.Println(alts[j])
+			winner, err := tieBreak([]Alternative{alts[i], alts[j]})
+			if err != nil {
+				return false // En cas d'erreur, on peut décider de ne rien changer
+			}
+			log.Println("gagnant est", winner)
+			return winner == alts[i]
+		})
+		return alts, nil
 	}
 }
 

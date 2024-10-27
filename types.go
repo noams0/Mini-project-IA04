@@ -2,15 +2,6 @@ package tp3
 
 import "tp3/comsoc"
 
-type Request struct {
-	Operator string `json:"op"`
-	Args     [2]int `json:"args"`
-}
-
-type Response struct {
-	Result int `json:"res"`
-}
-
 type NewBallotRequest struct {
 	Rule     string               `json:"rule"`
 	Deadline string               `json:"deadline"`
@@ -26,6 +17,16 @@ type VoteRequest struct {
 	//options  []comsoc.Alternative `json:"tie-break"`
 }
 
+type ResultsRequest struct {
+	BallotID string `json:"ballot-id"`
+	//options  []comsoc.Alternative `json:"tie-break"`
+}
+
 type NewBallotResponse struct {
 	BallotID string `json:"ballot-id"`
+}
+
+type ResultResponse struct {
+	Winner  comsoc.Alternative   `json:"winner"`
+	Ranking []comsoc.Alternative `json:"ranking"`
 }
