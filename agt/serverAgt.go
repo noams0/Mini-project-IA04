@@ -73,12 +73,10 @@ func (rsa *ServerRestAgent) newBallotRest(w http.ResponseWriter, r *http.Request
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
 	if time.Now().After(deadline) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
 	rsa.Lock()
 	defer rsa.Unlock()
 	ballotName := fmt.Sprintf("scurtinNum%d", rsa.count)
@@ -94,8 +92,11 @@ func (rsa *ServerRestAgent) newBallotRest(w http.ResponseWriter, r *http.Request
 	err = comsoc.CheckProfile(req.TieBreak, newBallot.alternatives)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		log.Println("Erreur dans la formation du tie-break")
 		return
 	}
+	log.Println("laaaa")
+
 	switch req.Rule {
 	case "majority":
 		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.MajoritySWF, comsoc.TieBreakFactory(req.TieBreak))

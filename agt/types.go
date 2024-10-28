@@ -27,3 +27,13 @@ type ballotAgent struct {
 	tiebreak     []comsoc.Alternative
 	//thresholds   []int64
 }
+
+type Agent struct {
+	agentId string
+	prefs   []comsoc.Alternative
+	//options []int64
+}
+
+type Admin struct {
+	agentId string
+}
