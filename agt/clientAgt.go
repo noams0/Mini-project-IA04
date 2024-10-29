@@ -73,7 +73,7 @@ func (ad Admin) StartSession(rule string, deadline string, voterIds []string, al
 		fmt.Println("failed treating response")
 		return
 	}
-	fmt.Printf("new session started with id %s\n", result.BallotID)
+	fmt.Println("new session started with id")
 	return result.BallotID, nil
 }
 
@@ -103,40 +103,38 @@ func (ag Agent) Vote(sessionID string) {
 	return
 }
 
-//func (ag Agent) GetResults(sessionID string) {
-//	port := 8080
-//	requestURL := fmt.Sprintf("http://localhost:%d/result", port)
-//
-//	obj := ResultRequest{sessionID}
-//	data, _ := json.Marshal(obj)
-//
-//	resp, err := http.Post(requestURL, "application/json", bytes.NewBuffer(data))
-//	if err != nil {
-//		fmt.Println(err)
-//		return
-//	}
-//	if resp.StatusCode != http.StatusOK {
-//		err = fmt.Errorf("[%d] %s", resp.StatusCode, resp.Status)
-//		fmt.Println(err)
-//		return
-//	}
-//	buf := new(bytes.Buffer)
-//	_, err2 := buf.ReadFrom(resp.Body)
-//	if err2 != nil {
-//		fmt.Println(err2)
-//		return
-//	}
-//
-//	var result ResultResponse
-//	result.Ranking = make([]comsoc.Alternative, 0)
-//
-//	err = json.Unmarshal(buf.Bytes(), &result)
-//	if err != nil {
-//		fmt.Println("failed unmarshalling")
-//		return
-//	}
-//	fmt.Printf("the winner of the vote %s is %d\n", sessionID, result.Winner)
-//	if len(result.Ranking) > 0 {
-//		fmt.Printf("the ranking of the vote is %v", result.Ranking)
-//	}
-//}
+func (ad Admin) GetResults(sessionID string) {
+	requestURL := "http://localhost:8080/results"
+	obj := rad.ResultsRequest{sessionID}
+	data, _ := json.Marshal(obj)
+
+	resp, err := http.Post(requestURL, "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	if resp.StatusCode != http.StatusOK {
+		err = fmt.Errorf("[%d] %s", resp.StatusCode, resp.Status)
+		fmt.Println(err)
+		return
+	}
+	buf := new(bytes.Buffer)
+	_, err2 := buf.ReadFrom(resp.Body)
+	if err2 != nil {
+		fmt.Println(err2)
+		return
+	}
+
+	var result rad.ResultResponse
+	result.Ranking = make([]comsoc.Alternative, 0)
+
+	err = json.Unmarshal(buf.Bytes(), &result)
+	if err != nil {
+		fmt.Println("failed unmarshalling")
+		return
+	}
+	fmt.Printf("the winner of the vote %s is %d\n", sessionID, result.Winner)
+	if len(result.Ranking) > 0 {
+		fmt.Printf("the ranking of the vote is %v", result.Ranking)
+	}
+}

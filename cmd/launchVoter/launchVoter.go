@@ -8,13 +8,50 @@ import (
 )
 
 func main() {
+
+	/*creating new ballot*/
 	administrator := agt.NewAdmin("adminAgent")
 	deadline := time.Now().Add(4 * time.Second).Format(time.RFC3339)
 	alts := make([]comsoc.Alternative, 6)
 	for i := 1; i <= 6; i++ {
 		alts[i-1] = comsoc.Alternative(i)
 	}
-	voterIDs := []string{"agt1", "agt2", "agt3"}
+	voterIDs := []string{"agt1", "agt2", "agt3", "agt4", "agt5", "agt6"}
 	ballotID, err := administrator.StartSession("majority", deadline, voterIDs, 6, alts)
-	log.Println(err, ballotID)
+	log.Println(ballotID, err)
+	list_voter := []*agt.Agent{}
+	/*creating voting Agent*/
+	agt1_4_preferences := []comsoc.Alternative{1, 2, 3, 4, 5, 6}
+	agt2_preferences := []comsoc.Alternative{2, 4, 3, 5, 6, 1}
+	agt3_preferences := []comsoc.Alternative{4, 3, 2, 6, 5, 1}
+	agt5_preferences := []comsoc.Alternative{6, 3, 2, 1, 5, 4}
+	agt1 := agt.NewAgent("agt1", agt1_4_preferences)
+	list_voter = append(list_voter, agt1)
+	agt2 := agt.NewAgent("agt2", agt2_preferences)
+	list_voter = append(list_voter, agt2)
+	agt3 := agt.NewAgent("agt3", agt3_preferences)
+	list_voter = append(list_voter, agt3)
+	agt4 := agt.NewAgent("agt4", agt1_4_preferences)
+	list_voter = append(list_voter, agt4)
+	agt5 := agt.NewAgent("agt5", agt5_preferences)
+	list_voter = append(list_voter, agt5)
+	for _, ag := range list_voter {
+		ag.Vote("scurtinNum0")
+	}
+
+	ballotID, _ = administrator.StartSession("borda", deadline, voterIDs, 6, alts)
+	for _, ag := range list_voter {
+		ag.Vote("scurtinNum1")
+	}
+	ballotID, _ = administrator.StartSession("copeland", deadline, voterIDs, 6, alts)
+	for _, ag := range list_voter {
+		ag.Vote("scurtinNum2")
+	}
+
+	time.Sleep(1 * time.Second)
+
+	administrator.GetResults("scurtinNum0")
+	administrator.GetResults("scurtinNum1")
+	administrator.GetResults("scurtinNum2")
+
 }

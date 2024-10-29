@@ -95,7 +95,6 @@ func (rsa *ServerRestAgent) newBallotRest(w http.ResponseWriter, r *http.Request
 		log.Println("Erreur dans la formation du tie-break")
 		return
 	}
-	log.Println("laaaa")
 
 	switch req.Rule {
 	case "majority":
@@ -120,6 +119,7 @@ func (rsa *ServerRestAgent) newBallotRest(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusCreated)
 	serial, _ := json.Marshal(resp)
 	w.Write(serial)
+
 }
 
 func (rsa *ServerRestAgent) vote(w http.ResponseWriter, r *http.Request) {
@@ -161,15 +161,15 @@ func (rsa *ServerRestAgent) vote(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		fmt.Fprint(w, "L'agent n'est pas autorisé à voter")
 		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "L'agent n'est pas autorisé à voter")
 		return
 	}
 
 	//Regarder si l'agent a bien donné ses préférences
 	if comsoc.CheckProfile(req.Prefs, ballotWanted.alternatives) != nil {
-		fmt.Fprint(w, "Le bulletin n'est pas correcte")
 		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "Le bulletin n'est pas correcte")
 		return
 	}
 
@@ -186,7 +186,6 @@ func (rsa *ServerRestAgent) results(w http.ResponseWriter, r *http.Request) {
 	if !rsa.checkMethod("POST", w, r) {
 		return
 	}
-
 	// décodage de la requête
 	req, err := rsa.decodeRequestResult(r)
 	if err != nil {

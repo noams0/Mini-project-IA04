@@ -1,7 +1,6 @@
 package comsoc
 
 import (
-	"log"
 	"sort"
 )
 
@@ -49,13 +48,10 @@ func SWFFactory(swf func(p Profile) (Count, error), tieBreak func([]Alternative)
 				return count[alts[i]] > count[alts[j]]
 			}
 			// Cas d'égalité : on utilise tieBreak pour départager
-			log.Println(alts[i])
-			log.Println(alts[j])
 			winner, err := tieBreak([]Alternative{alts[i], alts[j]})
 			if err != nil {
 				return false // En cas d'erreur, on peut décider de ne rien changer
 			}
-			log.Println("gagnant est", winner)
 			return winner == alts[i]
 		})
 		return alts, nil
