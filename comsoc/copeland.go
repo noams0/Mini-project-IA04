@@ -1,6 +1,6 @@
 package comsoc
 
-func CopelandSWF(p Profile) (Count, error) {
+func CopelandSWF(p Profile, _ []int) (Count, error) {
 	candid := p[0]
 	count := make(Count)
 
@@ -19,8 +19,8 @@ func CopelandSWF(p Profile) (Count, error) {
 	return count, nil
 }
 
-func CopelandSCF(p Profile) (bestAlts []Alternative, err error) {
-	count, err := CopelandSWF(p)
+func CopelandSCF(p Profile, _ []int) (bestAlts []Alternative, err error) {
+	count, err := CopelandSWF(p, nil)
 	if err != nil {
 		return nil, err
 	}

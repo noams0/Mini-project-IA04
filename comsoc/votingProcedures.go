@@ -29,9 +29,16 @@ func SCF(p Profile) (bestAlts []Alternative, err error) {
 	return MaxCount(count), nil
 }
 
-func SWFFactory(swf func(p Profile) (Count, error), tieBreak func([]Alternative) (Alternative, error)) func(Profile) ([]Alternative, error) {
-	return func(p Profile) ([]Alternative, error) {
-		count, err := swf(p)
+func SWFFactory(swf func(p Profile, t []int) (Count, error), tieBreak func([]Alternative) (Alternative, error)) func(Profile, []int) ([]Alternative, error) {
+
+	return func(p Profile, thresholds []int) ([]Alternative, error) {
+
+		if thresholds == nil { // pas de thresholds dans cette fonction
+			thresholds = []int{} // slice vide par défaut
+		}
+
+		count, err := swf(p, thresholds)
+
 		if err != nil {
 			return nil, err
 		}
@@ -58,9 +65,14 @@ func SWFFactory(swf func(p Profile) (Count, error), tieBreak func([]Alternative)
 	}
 }
 
-func SCFFactory(scf func(p Profile) ([]Alternative, error), tb func([]Alternative) (Alternative, error)) func(Profile) (Alternative, error) {
-	return func(p Profile) (Alternative, error) {
-		res, err := scf(p)
+func SCFFactory(scf func(p Profile, t []int) ([]Alternative, error), tb func([]Alternative) (Alternative, error)) func(Profile, []int) (Alternative, error) {
+	return func(p Profile, thresholds []int) (Alternative, error) {
+
+		if thresholds == nil {
+			thresholds = []int{}
+		}
+
+		res, err := scf(p, thresholds)
 		if err != nil {
 			return -1, err
 		}

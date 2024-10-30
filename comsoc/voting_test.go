@@ -1,6 +1,7 @@
 package comsoc
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -12,7 +13,7 @@ func TestBordaSWF(t *testing.T) {
 		{3, 2, 1},
 	}
 
-	res, _ := BordaSWF(prefs)
+	res, _ := BordaSWF(prefs, nil)
 	if res[1] != 4 {
 		t.Errorf("error, result for 1 should be 4, %d computed", res[1])
 	}
@@ -30,7 +31,7 @@ func TestBordaSCF(t *testing.T) {
 		{1, 2, 3},
 		{3, 2, 1},
 	}
-	res, err := BordaSCF(prefs)
+	res, err := BordaSCF(prefs, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -45,7 +46,7 @@ func TestMajoritySWF(t *testing.T) {
 		{1, 2, 3},
 		{3, 2, 1},
 	}
-	res, _ := MajoritySWF(prefs)
+	res, _ := MajoritySWF(prefs, nil)
 	if res[1] != 2 {
 		t.Errorf("error, result for 1 should be 2, %d computed", res[1])
 	}
@@ -63,7 +64,7 @@ func TestMajoritySCF(t *testing.T) {
 		{1, 2, 3},
 		{3, 2, 1},
 	}
-	res, err := MajoritySCF(prefs)
+	res, err := MajoritySCF(prefs, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -125,6 +126,9 @@ func TestApprovalSCFWithTieBreak(t *testing.T) {
 	orderedAlts := []Alternative{1, 2, 3}
 	tieBreakFunc := TieBreakFactory(orderedAlts)
 	winner, err := tieBreakFunc(bestAlts)
+	if err != nil {
+		t.Error(err)
+	}
 	if winner != 1 {
 		t.Errorf("error, 1 should be the only best Alternative")
 	}
@@ -142,9 +146,38 @@ func TestSWFFactory(t *testing.T) {
 	tb := TieBreakFactory(order)
 
 	newSwf := SWFFactory(BordaSWF, tb)
-	res, _ := newSwf(prefs)
+	res, _ := newSwf(prefs, nil)
 	if res[0] != 2 {
 		t.Errorf("error, result for 1 should be 2, %d computed", res[0])
+	}
+}
+
+func TestSWFFactoryApproval(t *testing.T) {
+	prefs := [][]Alternative{
+		{1, 2, 3},
+		{1, 2, 3},
+		{3, 2, 1},
+	}
+	thresholds := []int{2, 1, 2}
+
+	order := []Alternative{
+		2, 3, 1,
+	}
+	tb := TieBreakFactory(order)
+
+	newSwf := SWFFactory(ApprovalSWF, tb)
+	res, _ := newSwf(prefs, thresholds)
+
+	fmt.Println(res)
+
+	if res[0] != 2 {
+		t.Errorf("error, result for 1 should be 2, %d computed", res[1])
+	}
+	if res[1] != 1 {
+		t.Errorf("error, result for 2 should be 2, %d computed", res[2])
+	}
+	if res[2] != 3 {
+		t.Errorf("error, result for 3 should be 1, %d computed", res[3])
 	}
 }
 
@@ -163,10 +196,36 @@ func TestSCFFactory(t *testing.T) {
 
 	newScf := SCFFactory(MajoritySCF, tb)
 
-	alts, _ := newScf(prefs)
+	alts, _ := newScf(prefs, nil)
 
 	if alts != 3 {
 		t.Errorf("error, result for 1 should be 3, %d computed", alts)
+	}
+}
+
+func TestSCFFactoryApproval(t *testing.T) {
+	prefs := [][]Alternative{
+		{1, 2, 3},
+		{1, 2, 3},
+		{3, 2, 1},
+	}
+	thresholds := []int{2, 1, 2}
+	order := []Alternative{
+		2, 3, 1,
+	}
+
+	tb := TieBreakFactory(order)
+
+	newScf := SCFFactory(ApprovalSCF, tb)
+
+	res, err := newScf(prefs, thresholds)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if res != 2 {
+		t.Errorf("error, 1 should be the only best Alternative")
 	}
 }
 
@@ -202,7 +261,7 @@ func TestCopelandSWF(t *testing.T) {
 		{2, 1, 3},
 	}
 
-	res, err := CopelandSWF(prefs)
+	res, err := CopelandSWF(prefs, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -230,7 +289,7 @@ func TestCopelandSCF(t *testing.T) {
 
 	newScf := SCFFactory(CopelandSCF, tb)
 
-	alts, _ := newScf(prefs)
+	alts, _ := newScf(prefs, nil)
 
 	if alts != 1 {
 		t.Errorf("error, result for 1 should be 1, %d computed", alts)

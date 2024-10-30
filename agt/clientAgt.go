@@ -10,8 +10,13 @@ import (
 	"tp3/comsoc"
 )
 
-func NewAgent(id string, prefs []comsoc.Alternative) *Agent {
-	return &Agent{id, prefs}
+func NewAgent(id string, prefs []comsoc.Alternative, options []int) *Agent {
+
+	if options == nil {
+		options = []int{}
+	}
+
+	return &Agent{id, prefs, options}
 }
 
 func NewAdmin(id string) *Admin {
@@ -19,11 +24,11 @@ func NewAdmin(id string) *Admin {
 }
 
 func (ag Agent) Clone() *Agent {
-	return NewAgent(ag.agentId, ag.prefs)
+	return NewAgent(ag.agentId, ag.prefs, ag.options)
 }
 
 func (ag Agent) String() string {
-	return fmt.Sprintf("ID : %s, Preferences : %v", ag.agentId, ag.prefs)
+	return fmt.Sprintf("ID : %s, Preferences : %v, Options : %v", ag.agentId, ag.prefs, ag.options)
 }
 
 func (ad Admin) DecodeNewBallotResponse(r *http.Response) (rad.NewBallotResponse, error) {
@@ -45,6 +50,7 @@ func (ad Admin) DecodeNewBallotResponse(r *http.Response) (rad.NewBallotResponse
 }
 
 func (ad Admin) StartSession(rule string, deadline string, voterIds []string, alts int64, tieBreak []comsoc.Alternative) (res string, err error) {
+
 	requestURL := "http://localhost:8080/new_ballot"
 
 	session := rad.NewBallotRequest{
@@ -73,6 +79,7 @@ func (ad Admin) StartSession(rule string, deadline string, voterIds []string, al
 		fmt.Println("failed treating response")
 		return
 	}
+
 	fmt.Println("new session started with id")
 	return result.BallotID, nil
 }
@@ -84,6 +91,7 @@ func (ag Agent) Vote(sessionID string) {
 		AgentID:  ag.agentId,
 		BallotID: sessionID,
 		Prefs:    ag.prefs,
+		Options:  ag.options,
 	}
 
 	data, _ := json.Marshal(vote)
@@ -105,7 +113,7 @@ func (ag Agent) Vote(sessionID string) {
 
 func (ad Admin) GetResults(sessionID string) {
 	requestURL := "http://localhost:8080/results"
-	obj := rad.ResultsRequest{sessionID}
+	obj := rad.ResultsRequest{BallotID: sessionID}
 	data, _ := json.Marshal(obj)
 
 	resp, err := http.Post(requestURL, "application/json", bytes.NewBuffer(data))
@@ -133,8 +141,10 @@ func (ad Admin) GetResults(sessionID string) {
 		fmt.Println("failed unmarshalling")
 		return
 	}
+	fmt.Println()
 	fmt.Printf("the winner of the vote %s is %d\n", sessionID, result.Winner)
 	if len(result.Ranking) > 0 {
 		fmt.Printf("the ranking of the vote is %v", result.Ranking)
+		fmt.Println()
 	}
 }

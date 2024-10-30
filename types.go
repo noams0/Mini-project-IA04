@@ -14,7 +14,7 @@ type VoteRequest struct {
 	AgentID  string               `json:"agent-id"`
 	BallotID string               `json:"ballot-id"`
 	Prefs    []comsoc.Alternative `json:"prefs"`
-	//options  []comsoc.Alternative `json:"tie-break"`
+	Options  []int                `json:"options"`
 }
 
 type ResultsRequest struct {
