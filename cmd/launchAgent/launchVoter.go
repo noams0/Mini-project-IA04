@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"time"
 	agt "tp3/agt"
 	"tp3/comsoc"
@@ -12,14 +11,15 @@ func main() {
 	/*creating new ballot*/
 	administrator := agt.NewAdmin("adminAgent")
 	deadline := time.Now().Add(4 * time.Second).Format(time.RFC3339)
-	alts := make([]comsoc.Alternative, 6)
+
+	//Tie-break du plus petit au plus gros
+	tb := make([]comsoc.Alternative, 6)
 	for i := 1; i <= 6; i++ {
-		alts[i-1] = comsoc.Alternative(i)
+		tb[i-1] = comsoc.Alternative(i)
 	}
 
 	voterIDs := []string{"agt1", "agt2", "agt3", "agt4", "agt5", "agt6"}
-	ballotID, err := administrator.StartSession("majority", deadline, voterIDs, 6, alts)
-	log.Println(ballotID, err)
+	ballotIDs := []string{}
 	list_voter := []*agt.Agent{}
 	/*creating voting Agent*/
 	agt1_4_preferences := []comsoc.Alternative{1, 2, 3, 4, 5, 6}
@@ -42,29 +42,38 @@ func main() {
 	agt5 := agt.NewAgent("agt5", agt5_preferences, agt5_options)
 	list_voter = append(list_voter, agt5)
 
-	for _, ag := range list_voter {
-		ag.Vote("scurtinNum0")
-	}
-
-	ballotID, _ = administrator.StartSession("borda", deadline, voterIDs, 6, alts)
-	for _, ag := range list_voter {
-		ag.Vote(ballotID)
-	}
-	ballotID, _ = administrator.StartSession("copeland", deadline, voterIDs, 6, alts)
+	ballotID, _ := administrator.StartSession("majority", deadline, voterIDs, 6, tb)
+	//Point/Ranking -> 1, 2, 4, 6, 3, 5 OK
+	ballotIDs = append(ballotIDs, ballotID)
 	for _, ag := range list_voter {
 		ag.Vote(ballotID)
 	}
 
-	ballotID, _ = administrator.StartSession("approval", deadline, voterIDs, 6, alts)
+	//Point/Ranking ->2 : 19 / 3 : 17 / 4: 15 / 1 : 12 / 6 :  8/  5 : 6 OK
+	ballotID, _ = administrator.StartSession("borda", deadline, voterIDs, 6, tb)
+	ballotIDs = append(ballotIDs, ballotID)
+	for _, ag := range list_voter {
+		ag.Vote(ballotID)
+	}
+
+	//Point/Ranking -> 2 : 5 / 3 : 3 / 1 : -1  / 4 : -1 / 5 : -3 / 6 : -5 OK
+	ballotID, _ = administrator.StartSession("copeland", deadline, voterIDs, 6, tb)
+	ballotIDs = append(ballotIDs, ballotID)
+	for _, ag := range list_voter {
+		ag.Vote(ballotID)
+	}
+
+	ballotID, _ = administrator.StartSession("approval", deadline, voterIDs, 6, tb)
+	//Point/Ranking -> 2, 1, 4, 6, 5 //OK
+	ballotIDs = append(ballotIDs, ballotID)
 	for _, ag := range list_voter {
 		ag.Vote(ballotID)
 	}
 
 	time.Sleep(5 * time.Second)
 
-	administrator.GetResults("scurtinNum0")
-	administrator.GetResults("scurtinNum1")
-	administrator.GetResults("scurtinNum2")
-	administrator.GetResults("scurtinNum3")
+	for _, ballot := range ballotIDs {
+		administrator.GetResults(ballot)
+	}
 
 }
