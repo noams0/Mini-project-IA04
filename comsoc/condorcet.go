@@ -1,6 +1,6 @@
 package comsoc
 
-func CondorcetWinner(p Profile) (bestAlts []Alternative, err error) {
+func CondorcetWinner(p Profile, _ []int) (bestAlts []Alternative, err error) {
 	candid := p[0]
 	eliminated := make(map[Alternative]bool) // Map pour suivre les candidats éliminés
 	for _, c := range candid {

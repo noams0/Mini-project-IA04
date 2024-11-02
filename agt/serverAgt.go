@@ -116,6 +116,10 @@ func (rsa *ServerRestAgent) newBallotRest(w http.ResponseWriter, r *http.Request
 	case "approval":
 		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.ApprovalSWF, comsoc.TieBreakFactory(req.TieBreak))
 		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.ApprovalSCF, comsoc.TieBreakFactory(req.TieBreak))
+	case "condorcet":
+		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.CopelandSWF, comsoc.TieBreakFactory(req.TieBreak))
+		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.CondorcetWinner, comsoc.TieBreakFactory(req.TieBreak))
+
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, "Méthode de vote non connu")
@@ -186,6 +190,7 @@ func (rsa *ServerRestAgent) vote(w http.ResponseWriter, r *http.Request) {
 	//Ajour les preferences du votant au Profile du vote
 	ballotWanted.profile = append(ballotWanted.profile, req.Prefs)
 
+	// Mettre à jour le treshold
 	// Mettre à jour le treshold
 	// Si y a des options sinon ne fait rien
 	// Ici ne fait que le approval donc prend que le premier entier de la liste

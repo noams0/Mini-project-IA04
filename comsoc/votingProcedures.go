@@ -8,14 +8,12 @@ func SWF(p Profile) (count Count, err error) {
 	count = make(Count)                      // Initialiser le décompte
 	candid := make([]Alternative, len(p[0])) // Alternatives candidates
 
-	// Vérifier le profil de chaque votant
 	for _, prefs := range p {
 		if err := CheckProfile(prefs, candid); err != nil {
 			return nil, err
 		}
-		// Compter chaque vote dans le profil
 		for _, alt := range prefs {
-			count[alt]++ // Incrémenter le compteur pour chaque alternative votée
+			count[alt]++
 		}
 	}
 	return count, nil

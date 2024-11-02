@@ -22,8 +22,8 @@ func main() {
 	ballotIDs := []string{}
 	list_voter := []*agt.Agent{}
 	/*creating voting Agent*/
-	agt1_4_preferences := []comsoc.Alternative{1, 2, 3, 4, 5, 6}
-	agt2_preferences := []comsoc.Alternative{2, 4, 3, 5, 6, 1}
+	agt1_4_preferences := []comsoc.Alternative{1, 5, 2, 4, 3, 6}
+	agt2_preferences := []comsoc.Alternative{6, 4, 3, 5, 2, 1}
 	agt3_preferences := []comsoc.Alternative{4, 3, 2, 6, 5, 1}
 	agt5_preferences := []comsoc.Alternative{6, 3, 2, 1, 5, 4}
 	agt1_4_options := []int{2}
@@ -70,8 +70,14 @@ func main() {
 		ag.Vote(ballotID)
 	}
 
-	time.Sleep(5 * time.Second)
+	ballotID, _ = administrator.StartSession("condorcet", deadline, voterIDs, 6, tb)
+	//Point/Ranking -> 2, 1, 4, 6, 5 //OK
+	ballotIDs = append(ballotIDs, ballotID)
+	for _, ag := range list_voter {
+		ag.Vote(ballotID)
+	}
 
+	time.Sleep(5 * time.Second)
 	for _, ballot := range ballotIDs {
 		administrator.GetResults(ballot)
 	}

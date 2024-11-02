@@ -74,16 +74,12 @@ func (ad Admin) StartSession(rule string, deadline string, voterIds []string, al
 	}
 
 	result, err := ad.DecodeNewBallotResponse(resp)
-	log.Println("new session started with id")
-
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println("failed treating response")
 		return
 	}
 
-	log.Println("new session started with id")
-	log.Println(result)
 	return result.BallotID, nil
 }
 
@@ -110,7 +106,7 @@ func (ag Agent) Vote(sessionID string) {
 		return
 	}
 
-	fmt.Println("vote has been sent successfully")
+	fmt.Println("Vote bien pris en compte")
 	return
 }
 
@@ -145,9 +141,13 @@ func (ad Admin) GetResults(sessionID string) {
 		return
 	}
 	fmt.Println()
-	fmt.Printf("the winner of the vote %s is %d\n", sessionID, result.Winner)
+	if result.Winner == -1 {
+		fmt.Printf("Pas de gagnant de Condorcet pour le vote %s", sessionID)
+	} else {
+		fmt.Printf("Le gagnant du vote %s est %d\n ", sessionID, result.Winner)
+	}
 	if len(result.Ranking) > 0 {
-		fmt.Printf("the ranking of the vote is %v", result.Ranking)
+		fmt.Printf("Et le classement est %v", result.Ranking)
 		fmt.Println()
 	}
 }
