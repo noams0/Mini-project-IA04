@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"time"
 	agt "tp3/agt"
@@ -48,18 +47,17 @@ func main() {
 	}
 
 	ballotID, _ = administrator.StartSession("borda", deadline, voterIDs, 6, alts)
-	fmt.Println("ballot ID =", ballotID)
 	for _, ag := range list_voter {
-		ag.Vote("scurtinNum1")
+		ag.Vote(ballotID)
 	}
 	ballotID, _ = administrator.StartSession("copeland", deadline, voterIDs, 6, alts)
 	for _, ag := range list_voter {
-		ag.Vote("scurtinNum2")
+		ag.Vote(ballotID)
 	}
 
 	ballotID, _ = administrator.StartSession("approval", deadline, voterIDs, 6, alts)
 	for _, ag := range list_voter {
-		ag.Vote("scurtinNum3")
+		ag.Vote(ballotID)
 	}
 
 	time.Sleep(5 * time.Second)

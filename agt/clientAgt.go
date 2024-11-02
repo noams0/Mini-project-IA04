@@ -67,20 +67,23 @@ func (ad Admin) StartSession(rule string, deadline string, voterIds []string, al
 		return
 	}
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusCreated {
 		err = fmt.Errorf("[%d] %s", resp.StatusCode, resp.Status)
 		fmt.Println(err)
 		return
 	}
 
 	result, err := ad.DecodeNewBallotResponse(resp)
+	log.Println("new session started with id")
+
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println("failed treating response")
 		return
 	}
 
-	fmt.Println("new session started with id")
+	log.Println("new session started with id")
+	log.Println(result)
 	return result.BallotID, nil
 }
 
