@@ -78,6 +78,7 @@ func (rsa *ServerRestAgent) newBallotRest(w http.ResponseWriter, r *http.Request
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
 	if time.Now().After(deadline) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -119,6 +120,9 @@ func (rsa *ServerRestAgent) newBallotRest(w http.ResponseWriter, r *http.Request
 	case "condorcet":
 		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.CopelandSWF, comsoc.TieBreakFactory(req.TieBreak))
 		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.CondorcetWinner, comsoc.TieBreakFactory(req.TieBreak))
+	case "stv":
+		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.StvSWF, comsoc.TieBreakFactory(req.TieBreak))
+		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.StvSCF, comsoc.TieBreakFactory(req.TieBreak))
 
 	default:
 		w.WriteHeader(http.StatusBadRequest)
@@ -249,9 +253,17 @@ func (rsa *ServerRestAgent) results(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ranking, _ := ballotWanted.ruleSWF(ballotWanted.profile, ballotWanted.thresholds)
-	winner, _ := ballotWanted.ruleSCF(ballotWanted.profile, ballotWanted.thresholds)
+	var ranking []comsoc.Alternative
+	var winner comsoc.Alternative
+	if ballotWanted.rulename != "stv" {
+		ranking, _ = ballotWanted.ruleSWF(ballotWanted.profile, ballotWanted.thresholds)
+		winner, _ = ballotWanted.ruleSCF(ballotWanted.profile, ballotWanted.thresholds)
+	} else {
+		ranking, _ = ballotWanted.ruleSWF(ballotWanted.profile, comsoc.TransformInt(ballotWanted.tiebreak))
+		winner, _ = ballotWanted.ruleSCF(ballotWanted.profile, comsoc.TransformInt(ballotWanted.tiebreak))
+	}
 
+	fmt.Println("winner", winner)
 	var resp rad.ResultResponse
 	resp.Ranking = ranking
 	resp.Winner = winner

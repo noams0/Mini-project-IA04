@@ -71,13 +71,17 @@ func SCFFactory(scf func(p Profile, t []int) ([]Alternative, error), tb func([]A
 		}
 
 		res, err := scf(p, thresholds)
+
 		if err != nil {
 			return -1, err
 		}
+
 		winner, err := tb(res)
+
 		if err != nil {
 			return -1, err
 		}
+
 		return winner, nil
 	}
 }

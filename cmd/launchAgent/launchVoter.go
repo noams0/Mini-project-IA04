@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 	agt "tp3/agt"
 	"tp3/comsoc"
@@ -17,6 +18,7 @@ func main() {
 	for i := 1; i <= 6; i++ {
 		tb[i-1] = comsoc.Alternative(i)
 	}
+	fmt.Println(tb)
 
 	voterIDs := []string{"agt1", "agt2", "agt3", "agt4", "agt5", "agt6"}
 	ballotIDs := []string{}
@@ -72,6 +74,13 @@ func main() {
 
 	ballotID, _ = administrator.StartSession("condorcet", deadline, voterIDs, 6, tb)
 	//Point/Ranking -> 2, 1, 4, 6, 5 //OK
+	ballotIDs = append(ballotIDs, ballotID)
+	for _, ag := range list_voter {
+		ag.Vote(ballotID)
+	}
+
+	ballotID, _ = administrator.StartSession("stv", deadline, voterIDs, 6, tb)
+	// Point/Ranking -> 6,1,4,2,3,5 // Ok ranking mais pas resultat
 	ballotIDs = append(ballotIDs, ballotID)
 	for _, ag := range list_voter {
 		ag.Vote(ballotID)

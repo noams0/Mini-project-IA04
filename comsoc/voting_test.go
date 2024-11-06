@@ -236,7 +236,7 @@ func TestCondorcetWinner(t *testing.T) {
 		{2, 1, 3},
 	}
 
-	res, err := CondorcetWinner(prefs)
+	res, err := CondorcetWinner(prefs, nil)
 
 	if err != nil {
 		t.Error(err)
@@ -294,4 +294,53 @@ func TestCopelandSCF(t *testing.T) {
 	if alts != 1 {
 		t.Errorf("error, result for 1 should be 1, %d computed", alts)
 	}
+}
+
+func TestStvSwF(t *testing.T) {
+	prefs := [][]Alternative{
+		{1, 2, 3},
+		{1, 2, 3},
+		{3, 2, 1},
+		{3, 2, 1},
+	}
+
+	order := []Alternative{
+		1, 3, 2,
+	}
+
+	order2 := []int{
+		1, 3, 2,
+	}
+
+	tb := TieBreakFactory(order)
+
+	newSwf := SWFFactory(StvSWF, tb)
+
+	alts, _ := newSwf(prefs, order2)
+
+	fmt.Println(alts)
+
+}
+
+func TestStvScF(t *testing.T) {
+	prefs := [][]Alternative{
+		{1, 5, 2, 4, 3, 6},
+		{1, 5, 2, 4, 3, 6},
+		{6, 4, 3, 5, 2, 1},
+		{4, 3, 2, 6, 5, 1},
+		{6, 3, 2, 1, 5, 4},
+	}
+
+	tb := make([]Alternative, 6)
+	for i := 1; i <= 6; i++ {
+		tb[i-1] = Alternative(i)
+	}
+
+	tbf := TieBreakFactory(tb)
+
+	newScf := SCFFactory(StvSCF, tbf)
+
+	alts, _ := newScf(prefs, TransformInt(tb))
+
+	fmt.Println("resultat", alts)
 }

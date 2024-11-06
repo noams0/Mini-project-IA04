@@ -60,9 +60,11 @@ func (ad Admin) StartSession(rule string, deadline string, voterIds []string, al
 		Alts:     alts,
 		TieBreak: tieBreak,
 	}
+
 	log.Println(session)
 	data, _ := json.Marshal(session)
 	resp, err := http.Post(requestURL, "application/json", bytes.NewBuffer(data))
+
 	if err != nil {
 		return
 	}
@@ -111,6 +113,7 @@ func (ag Agent) Vote(sessionID string) {
 }
 
 func (ad Admin) GetResults(sessionID string) {
+
 	requestURL := "http://localhost:8080/results"
 	obj := rad.ResultsRequest{BallotID: sessionID}
 	data, _ := json.Marshal(obj)
@@ -120,11 +123,13 @@ func (ad Admin) GetResults(sessionID string) {
 		fmt.Println(err)
 		return
 	}
+
 	if resp.StatusCode != http.StatusOK {
 		err = fmt.Errorf("[%d] %s", resp.StatusCode, resp.Status)
 		fmt.Println(err)
 		return
 	}
+
 	buf := new(bytes.Buffer)
 	_, err2 := buf.ReadFrom(resp.Body)
 	if err2 != nil {
@@ -136,13 +141,16 @@ func (ad Admin) GetResults(sessionID string) {
 	result.Ranking = make([]comsoc.Alternative, 0)
 
 	err = json.Unmarshal(buf.Bytes(), &result)
+	fmt.Println("resultat", result)
+
 	if err != nil {
 		fmt.Println("failed unmarshalling")
 		return
 	}
 	fmt.Println()
+
 	if result.Winner == -1 {
-		fmt.Printf("Pas de gagnant de Condorcet pour le vote %s", sessionID)
+		fmt.Printf("Pas de gagnant de Condorcet pour le vote %s\n", sessionID)
 	} else {
 		fmt.Printf("Le gagnant du vote %s est %d\n ", sessionID, result.Winner)
 	}

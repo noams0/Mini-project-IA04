@@ -3,6 +3,7 @@ package comsoc
 import (
 	"errors"
 	"fmt"
+	"math"
 	"math/rand"
 )
 
@@ -110,4 +111,72 @@ func compareTwoAlternatives(p Profile, alt1 Alternative, alt2 Alternative) bool 
 		}
 	}
 	return alt1Wins > alt2Wins
+}
+
+// Pour STV
+
+func MinCount(count Count) (bestAlts []Alternative) {
+	// Trouve les min du Count
+	var min int = math.MaxInt64
+
+	for alt, value := range count {
+		if value < min {
+			min = value
+			bestAlts = []Alternative{}       // Remet à 0 les meilleurs alternatives
+			bestAlts = append(bestAlts, alt) // remet dans l'objet car peut changer d'emplacement mémoire
+
+		} else if value == min {
+			bestAlts = append(bestAlts, Alternative(alt))
+		}
+		// Sinon il se passe rien
+	}
+	return
+}
+
+func Maxvalue(count Count) (bestAlts []Alternative, bestValues []int) {
+	// Trouve les max du Count
+
+	var max int = -1
+	for alt, value := range count {
+		if value > max {
+			max = value
+			bestAlts = []Alternative{}       // Remet à 0 les meilleurs alternatives
+			bestAlts = append(bestAlts, alt) // remet dans l'objet car peut changer d'emplacement mémoire
+			bestValues = []int{}
+			bestValues = append(bestValues, value)
+
+		} else if value == max {
+			bestAlts = append(bestAlts, alt)
+			bestValues = append(bestValues, value)
+		}
+		// Sinon il se passe rien
+	}
+	return
+}
+
+func TransformInt(tiebreak []Alternative) (c []int) {
+	c = make([]int, len(tiebreak))
+
+	for i, v := range tiebreak {
+		c[i] = int(v)
+	}
+	return
+}
+
+func TransformAlternatives(tiebreak []int) (c []Alternative) {
+	c = make([]Alternative, len(tiebreak))
+
+	for i, v := range tiebreak {
+		c[i] = Alternative(v)
+	}
+	return
+}
+
+func InverseAlternatives(tiebreak []Alternative) (c []Alternative) {
+	c = make([]Alternative, len(tiebreak))
+
+	for i, v := range tiebreak {
+		c[len(tiebreak)-i-1] = Alternative(v)
+	}
+	return
 }
