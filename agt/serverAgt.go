@@ -73,12 +73,14 @@ func (rsa *ServerRestAgent) newBallotRest(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// Création de la deadline
 	deadline, err := time.Parse(time.RFC3339, req.Deadline)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
+	// Deadline dans le passé
 	if time.Now().After(deadline) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -94,9 +96,11 @@ func (rsa *ServerRestAgent) newBallotRest(w http.ResponseWriter, r *http.Request
 	// Créer le newBallot mais on ne connait pas les tresholds s'il y en a, ils seront passé pendant le vote
 	// Pour l'instant on initialise à un slice vide
 	newBallot := *NewBallotAgent(ballotName, req.Rule, deadline, voterIDMap, make([]comsoc.Alternative, 0), req.TieBreak, nil)
+
 	for i := int64(0); i < req.Alts; i++ {
 		newBallot.alternatives = append(newBallot.alternatives, comsoc.Alternative(i))
 	}
+
 	err = comsoc.CheckProfile(req.TieBreak, newBallot.alternatives)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -156,12 +160,14 @@ func (rsa *ServerRestAgent) vote(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, err.Error())
 		return
 	}
+
 	balloPos := ""
 	for i, b := range rsa.ballotAgents {
 		if b.ballotID == req.BallotID {
 			balloPos = i
 		}
 	}
+
 	if balloPos == "" {
 		w.WriteHeader(http.StatusNotImplemented)
 		return
@@ -197,25 +203,21 @@ func (rsa *ServerRestAgent) vote(w http.ResponseWriter, r *http.Request) {
 	//Ajour les preferences du votant au Profile du vote
 	ballotWanted.profile = append(ballotWanted.profile, req.Prefs)
 
-	// Mettre à jour le treshold
-	// Mettre à jour le treshold
-	// Si y a des options sinon ne fait rien
-	// Ici ne fait que le approval donc prend que le premier entier de la liste
-	// On suppose qu'il n'y a pas d'erreur dans les votes càd que si c'est un approval envoie forcément au moins slice vide
-	// pour le treshold
-	if req.Options != nil {
-		// Si le slice d'options est vide on dit que le votant ne vote pas donc 0 pour celui la
-		var treshold int
-		if len(req.Options) != 0 {
+	// Ajouts des options uniquement pour le approval.
+	var treshold int
+	if req.Options != nil && len(req.Options) != 0 {
+		// Vérification de req.Options de 0
+		// doit être positif et ne pas être supérieur aux nombres d'alternatives
+		if req.Options[0] > 0 && req.Options[0] <= len(ballotWanted.alternatives) {
 			treshold = int(req.Options[0])
 		}
-		ballotWanted.thresholds = append(ballotWanted.thresholds, treshold)
-	}
+	} // Si pas d'options ne vote pas
+
+	ballotWanted.thresholds = append(ballotWanted.thresholds, treshold)
 
 	//Indiquer que l'agent a voté
 	ballotWanted.voterID[req.AgentID] = true
 	w.WriteHeader(http.StatusOK)
-
 }
 
 func (rsa *ServerRestAgent) results(w http.ResponseWriter, r *http.Request) {
@@ -223,6 +225,7 @@ func (rsa *ServerRestAgent) results(w http.ResponseWriter, r *http.Request) {
 	if !rsa.checkMethod("POST", w, r) {
 		return
 	}
+
 	// décodage de la requête
 	req, err := rsa.decodeRequestResult(r)
 	if err != nil {
@@ -237,6 +240,7 @@ func (rsa *ServerRestAgent) results(w http.ResponseWriter, r *http.Request) {
 			balloPos = i
 		}
 	}
+
 	if balloPos == "" {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -247,7 +251,6 @@ func (rsa *ServerRestAgent) results(w http.ResponseWriter, r *http.Request) {
 	if len(ballotWanted.profile) == 0 {
 		w.WriteHeader(http.StatusTeapot)
 		fmt.Fprint(w, "Personne n'a voté :(")
-
 		return
 	}
 
@@ -258,15 +261,14 @@ func (rsa *ServerRestAgent) results(w http.ResponseWriter, r *http.Request) {
 
 	var ranking []comsoc.Alternative
 	var winner comsoc.Alternative
-	if ballotWanted.rulename != "stv" {
-		ranking, _ = ballotWanted.ruleSWF(ballotWanted.profile, ballotWanted.thresholds)
-		winner, _ = ballotWanted.ruleSCF(ballotWanted.profile, ballotWanted.thresholds)
-	} else {
+	if ballotWanted.rulename != "approval" {
 		ranking, _ = ballotWanted.ruleSWF(ballotWanted.profile, comsoc.TransformInt(ballotWanted.tiebreak))
 		winner, _ = ballotWanted.ruleSCF(ballotWanted.profile, comsoc.TransformInt(ballotWanted.tiebreak))
+	} else { // Si approval met le thresholds
+		ranking, _ = ballotWanted.ruleSWF(ballotWanted.profile, ballotWanted.thresholds)
+		winner, _ = ballotWanted.ruleSCF(ballotWanted.profile, ballotWanted.thresholds)
 	}
 
-	fmt.Println("winner", winner)
 	var resp rad.ResultResponse
 	resp.Ranking = ranking
 	resp.Winner = winner

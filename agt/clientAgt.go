@@ -99,6 +99,7 @@ func (ag Agent) Vote(sessionID string) {
 
 	resp, err := http.Post(requestURL, "application/json", bytes.NewBuffer(data))
 	if err != nil {
+		fmt.Println(err.Error())
 		return
 	}
 
@@ -140,7 +141,6 @@ func (ad Admin) GetResults(sessionID string) {
 	var result rad.ResultResponse
 	result.Ranking = make([]comsoc.Alternative, 0)
 	err = json.Unmarshal(buf.Bytes(), &result)
-	fmt.Println("resultat", result)
 
 	if err != nil {
 		fmt.Println("failed unmarshalling")

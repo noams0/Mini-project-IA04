@@ -2,12 +2,12 @@ package comsoc
 
 import (
 	"fmt"
-	"gitlab.utc.fr/lagruesy/ia04/utils"
 	"sort"
+
+	"gitlab.utc.fr/lagruesy/ia04/utils"
 )
 
-//Rajouter gestion d'erreurs
-
+// Rajouter gestion d'erreurs
 func DistanceEdition(pref1, pref2 []Alternative) int {
 	distance := 0
 	n := len(pref1)
