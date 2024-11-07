@@ -1,25 +1,26 @@
 package comsoc
 
-import "log"
+func MajoritySWF(p Profile, _ []int) (count Count, err error) {
 
-func MajoritySWF(p Profile) (count Count, err error) {
 	count = make(Count)
 	candid := make([]Alternative, len(p[0]))
-	for i := range p[0] {
-		count[Alternative(i)] = 0
+
+	for i := 0; i < len(candid); i++ {
+		candid[i] = p[0][i]
+		count[Alternative(p[0][i])] = 0
 	}
+
 	for _, prefs := range p {
-		if err := CheckProfile(prefs, candid); err != nil {
-			return nil, err
-		}
+		// if err := CheckProfile(prefs, candid); err != nil {
+		//	return nil, err
+		// }
 		count[prefs[0]]++
 	}
-	log.Println(count)
 	return count, nil
 }
 
-func MajoritySCF(p Profile) (bestAlts []Alternative, err error) {
-	count, err := MajoritySWF(p)
+func MajoritySCF(p Profile, _ []int) (bestAlts []Alternative, err error) {
+	count, err := MajoritySWF(p, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,6 @@
 package comsoc
 
-func BordaSWF(p Profile) (count Count, err error) {
+func BordaSWF(p Profile, _ []int) (count Count, err error) {
 	count = make(Count)
 	candid := make([]Alternative, len(p[0]))
 	for _, prefs := range p {
@@ -14,8 +14,8 @@ func BordaSWF(p Profile) (count Count, err error) {
 	return count, nil
 }
 
-func BordaSCF(p Profile) (bestAlts []Alternative, err error) {
-	count, err := BordaSWF(p)
+func BordaSCF(p Profile, _ []int) (bestAlts []Alternative, err error) {
+	count, err := BordaSWF(p, nil)
 	if err != nil {
 		return nil, err
 	}

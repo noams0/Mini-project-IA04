@@ -8,14 +8,12 @@ func SWF(p Profile) (count Count, err error) {
 	count = make(Count)                      // Initialiser le décompte
 	candid := make([]Alternative, len(p[0])) // Alternatives candidates
 
-	// Vérifier le profil de chaque votant
 	for _, prefs := range p {
 		if err := CheckProfile(prefs, candid); err != nil {
 			return nil, err
 		}
-		// Compter chaque vote dans le profil
 		for _, alt := range prefs {
-			count[alt]++ // Incrémenter le compteur pour chaque alternative votée
+			count[alt]++
 		}
 	}
 	return count, nil
@@ -29,9 +27,16 @@ func SCF(p Profile) (bestAlts []Alternative, err error) {
 	return MaxCount(count), nil
 }
 
-func SWFFactory(swf func(p Profile) (Count, error), tieBreak func([]Alternative) (Alternative, error)) func(Profile) ([]Alternative, error) {
-	return func(p Profile) ([]Alternative, error) {
-		count, err := swf(p)
+func SWFFactory(swf func(p Profile, t []int) (Count, error), tieBreak func([]Alternative) (Alternative, error)) func(Profile, []int) ([]Alternative, error) {
+
+	return func(p Profile, thresholds []int) ([]Alternative, error) {
+
+		if thresholds == nil { // pas de thresholds dans cette fonction
+			thresholds = []int{} // slice vide par défaut
+		}
+
+		count, err := swf(p, thresholds)
+
 		if err != nil {
 			return nil, err
 		}
@@ -58,16 +63,25 @@ func SWFFactory(swf func(p Profile) (Count, error), tieBreak func([]Alternative)
 	}
 }
 
-func SCFFactory(scf func(p Profile) ([]Alternative, error), tb func([]Alternative) (Alternative, error)) func(Profile) (Alternative, error) {
-	return func(p Profile) (Alternative, error) {
-		res, err := scf(p)
+func SCFFactory(scf func(p Profile, t []int) ([]Alternative, error), tb func([]Alternative) (Alternative, error)) func(Profile, []int) (Alternative, error) {
+	return func(p Profile, thresholds []int) (Alternative, error) {
+
+		if thresholds == nil {
+			thresholds = []int{}
+		}
+
+		res, err := scf(p, thresholds)
+
 		if err != nil {
 			return -1, err
 		}
+
 		winner, err := tb(res)
+
 		if err != nil {
 			return -1, err
 		}
+
 		return winner, nil
 	}
 }

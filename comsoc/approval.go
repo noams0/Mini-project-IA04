@@ -6,9 +6,17 @@ import (
 
 func ApprovalSWF(p Profile, thresholds []int) (count Count, err error) {
 	count = make(Count)
+
 	if len(thresholds) != len(p) {
-		return nil, fmt.Errorf("Not the same number")
+		return nil, fmt.Errorf("not the same number")
 	}
+
+	fmt.Println(len(p[0]))
+	for i := range p[0] {
+		count[Alternative(i+1)] = 0
+	}
+	fmt.Println(p)
+
 	for ind, prefs := range p {
 
 		if err := CheckProfile(prefs, p[0]); err != nil {

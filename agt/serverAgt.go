@@ -19,8 +19,13 @@ func (rsa *ServerRestAgent) GetBallot() map[string]*ballotAgent {
 	return rsa.ballotAgents
 }
 
-func NewBallotAgent(ballotID string, rulename string, deadline time.Time, voterID map[string]bool, alts []comsoc.Alternative, tiebreak []comsoc.Alternative) *ballotAgent {
-	return &ballotAgent{ballotID: ballotID, rulename: rulename, deadline: deadline, voterID: voterID, alternatives: alts, tiebreak: tiebreak}
+func NewBallotAgent(ballotID string, rulename string, deadline time.Time, voterID map[string]bool, alts []comsoc.Alternative, tiebreak []comsoc.Alternative, thresholds []int) *ballotAgent {
+
+	if thresholds == nil {
+		thresholds = []int{} // Crée une slice vide si non fournis
+	}
+
+	return &ballotAgent{ballotID: ballotID, rulename: rulename, deadline: deadline, voterID: voterID, alternatives: alts, tiebreak: tiebreak, thresholds: thresholds}
 }
 
 func (rsa *ServerRestAgent) checkMethod(method string, w http.ResponseWriter, r *http.Request) bool {
@@ -73,6 +78,7 @@ func (rsa *ServerRestAgent) newBallotRest(w http.ResponseWriter, r *http.Request
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
 	if time.Now().After(deadline) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -85,7 +91,9 @@ func (rsa *ServerRestAgent) newBallotRest(w http.ResponseWriter, r *http.Request
 		voterIDMap[name] = false
 	}
 
-	newBallot := *NewBallotAgent(ballotName, req.Rule, deadline, voterIDMap, make([]comsoc.Alternative, 0), req.TieBreak)
+	// Créer le newBallot mais on ne connait pas les tresholds s'il y en a, ils seront passé pendant le vote
+	// Pour l'instant on initialise à un slice vide
+	newBallot := *NewBallotAgent(ballotName, req.Rule, deadline, voterIDMap, make([]comsoc.Alternative, 0), req.TieBreak, nil)
 	for i := int64(0); i < req.Alts; i++ {
 		newBallot.alternatives = append(newBallot.alternatives, comsoc.Alternative(i))
 	}
@@ -106,6 +114,16 @@ func (rsa *ServerRestAgent) newBallotRest(w http.ResponseWriter, r *http.Request
 	case "copeland":
 		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.CopelandSWF, comsoc.TieBreakFactory(req.TieBreak))
 		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.CopelandSCF, comsoc.TieBreakFactory(req.TieBreak))
+	case "approval":
+		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.ApprovalSWF, comsoc.TieBreakFactory(req.TieBreak))
+		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.ApprovalSCF, comsoc.TieBreakFactory(req.TieBreak))
+	case "condorcet":
+		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.CopelandSWF, comsoc.TieBreakFactory(req.TieBreak))
+		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.CondorcetWinner, comsoc.TieBreakFactory(req.TieBreak))
+	case "stv":
+		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.StvSWF, comsoc.TieBreakFactory(req.TieBreak))
+		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.StvSCF, comsoc.TieBreakFactory(req.TieBreak))
+
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, "Méthode de vote non connu")
@@ -156,7 +174,7 @@ func (rsa *ServerRestAgent) vote(w http.ResponseWriter, r *http.Request) {
 	//Regarder si l'agent peut voter
 	log.Println("agent : ", req.AgentID)
 	if value, exists := ballotWanted.voterID[req.AgentID]; exists {
-		if value == true {
+		if value {
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
@@ -175,6 +193,22 @@ func (rsa *ServerRestAgent) vote(w http.ResponseWriter, r *http.Request) {
 
 	//Ajour les preferences du votant au Profile du vote
 	ballotWanted.profile = append(ballotWanted.profile, req.Prefs)
+
+	// Mettre à jour le treshold
+	// Mettre à jour le treshold
+	// Si y a des options sinon ne fait rien
+	// Ici ne fait que le approval donc prend que le premier entier de la liste
+	// On suppose qu'il n'y a pas d'erreur dans les votes càd que si c'est un approval envoie forcément au moins slice vide
+	// pour le treshold
+	if req.Options != nil {
+		// Si le slice d'options est vide on dit que le votant ne vote pas donc 0 pour celui la
+		var treshold int
+		if len(req.Options) != 0 {
+			treshold = int(req.Options[0])
+		}
+		ballotWanted.thresholds = append(ballotWanted.thresholds, treshold)
+	}
+
 	//Indiquer que l'agent a voté
 	ballotWanted.voterID[req.AgentID] = true
 	w.WriteHeader(http.StatusOK)
@@ -219,9 +253,17 @@ func (rsa *ServerRestAgent) results(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ranking, _ := ballotWanted.ruleSWF(ballotWanted.profile)
-	winner, _ := ballotWanted.ruleSCF(ballotWanted.profile)
+	var ranking []comsoc.Alternative
+	var winner comsoc.Alternative
+	if ballotWanted.rulename != "stv" {
+		ranking, _ = ballotWanted.ruleSWF(ballotWanted.profile, ballotWanted.thresholds)
+		winner, _ = ballotWanted.ruleSCF(ballotWanted.profile, ballotWanted.thresholds)
+	} else {
+		ranking, _ = ballotWanted.ruleSWF(ballotWanted.profile, comsoc.TransformInt(ballotWanted.tiebreak))
+		winner, _ = ballotWanted.ruleSCF(ballotWanted.profile, comsoc.TransformInt(ballotWanted.tiebreak))
+	}
 
+	fmt.Println("winner", winner)
 	var resp rad.ResultResponse
 	resp.Ranking = ranking
 	resp.Winner = winner

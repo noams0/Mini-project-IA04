@@ -18,20 +18,20 @@ type ballotAgent struct {
 	sync.Mutex
 	ballotID     string
 	rulename     string
-	ruleSWF      func(comsoc.Profile) ([]comsoc.Alternative, error)
-	ruleSCF      func(comsoc.Profile) (comsoc.Alternative, error)
+	ruleSWF      func(comsoc.Profile, []int) ([]comsoc.Alternative, error)
+	ruleSCF      func(comsoc.Profile, []int) (comsoc.Alternative, error)
 	deadline     time.Time
 	voterID      map[string]bool
 	profile      comsoc.Profile
 	alternatives []comsoc.Alternative
 	tiebreak     []comsoc.Alternative
-	//thresholds   []int64
+	thresholds   []int
 }
 
 type Agent struct {
 	agentId string
 	prefs   []comsoc.Alternative
-	//options []int64
+	options []int
 }
 
 type Admin struct {
