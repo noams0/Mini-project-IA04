@@ -344,3 +344,107 @@ func TestStvScF(t *testing.T) {
 
 	fmt.Println("resultat", alts)
 }
+
+func TestDistanceEdition(t *testing.T) {
+	profile1 := []Alternative{1, 2, 3, 4}
+	profile2 := []Alternative{1, 3, 4, 2}
+	dist := DistanceEdition(profile1, profile2)
+	if dist != 2 {
+		t.Errorf("error, distance should be 2, %d computed", dist)
+	}
+}
+
+func TestDistanceEditionProfile(t *testing.T) {
+	prefs := [][]Alternative{
+		{1, 2, 3},
+		{3, 1, 2},
+		{2, 1, 3},
+	}
+	rangement := []Alternative{1, 2, 3}
+	dist := DistanceEditionProfile(prefs, rangement)
+	if dist != 3 {
+		t.Errorf("error, distance should be 3, %d computed", dist)
+	}
+	prefs = [][]Alternative{
+		{1, 2, 3, 4},
+		{4, 3, 1, 2},
+		{2, 1, 4, 3},
+	}
+	rangement = []Alternative{1, 2, 3, 4}
+	dist = DistanceEditionProfile(prefs, rangement)
+	if dist != 7 {
+		t.Errorf("error, distance should be 7, %d computed", dist)
+	}
+}
+
+func TestKemenySWF(t *testing.T) {
+	prefs := [][]Alternative{
+		{1, 2, 3, 4},
+		{4, 3, 1, 2},
+		{2, 1, 4, 3},
+	}
+	rangement_expected := []Alternative{1, 2, 4, 3}
+	rangement := KemenySWF(prefs, nil)
+	for i, alternative := range rangement {
+		if alternative != rangement_expected[i] {
+			t.Errorf("error, for the index %d should be %d, %d computed", i, rangement_expected[i], alternative)
+		}
+	}
+
+	prefs = [][]Alternative{
+		{1, 3, 2},
+		{2, 1, 3},
+	}
+	rangement_expected = []Alternative{2, 1, 3}
+	rangement = KemenySWF(prefs, []int{2, 3, 1})
+	for i, alternative := range rangement {
+		if alternative != rangement_expected[i] {
+			t.Errorf("error, for the index %d should be %d, %d computed", i, rangement_expected[i], alternative)
+		}
+	}
+
+	// Nashville -> 1
+	// Chattanooga -> 2
+	// Knoxville -> 3
+	// Memphis -> 4
+	prefs = [][]Alternative{}
+	rangement_expected = []Alternative{1, 2, 3, 4}
+	for i := 0; i < 42; i++ {
+		prefs = append(prefs, []Alternative{4, 1, 2, 3})
+	}
+	for i := 0; i < 26; i++ {
+		prefs = append(prefs, []Alternative{1, 2, 3, 4})
+	}
+	for i := 0; i < 15; i++ {
+		prefs = append(prefs, []Alternative{2, 3, 1, 4})
+	}
+	for i := 0; i < 17; i++ {
+		prefs = append(prefs, []Alternative{3, 2, 1, 4})
+	}
+	rangement = KemenySWF(prefs, nil)
+	for i, alt := range rangement {
+		if alt != rangement_expected[i] {
+			t.Errorf("error, for index %d expected %d, got %d", i, rangement_expected[i], alt)
+		}
+	}
+}
+
+//func TestPossibleWinners(t *testing.T) {
+//	//a -> 1
+//	//b ->2
+//	//c ->3
+//	//d ->4
+//	//e ->5
+//	prefs := [][]Alternative{
+//		{1, 2, 3, 4, 5},
+//
+//		{2, 1, 4, 5, 3},
+//		{2, 1, 4, 5, 3},
+//
+//		{5, 3, 2, 1, 4},
+//		{5, 3, 2, 1, 4},
+//		{5, 3, 2, 1, 4},
+//
+//		{5, 3, 2, 1, 4},
+//	}
+//}

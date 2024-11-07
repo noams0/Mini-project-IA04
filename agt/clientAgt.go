@@ -119,7 +119,9 @@ func (ad Admin) GetResults(sessionID string) {
 	data, _ := json.Marshal(obj)
 
 	resp, err := http.Post(requestURL, "application/json", bytes.NewBuffer(data))
+	fmt.Println("ICI")
 	if err != nil {
+		fmt.Println("ICI")
 		fmt.Println(err)
 		return
 	}
@@ -139,7 +141,6 @@ func (ad Admin) GetResults(sessionID string) {
 
 	var result rad.ResultResponse
 	result.Ranking = make([]comsoc.Alternative, 0)
-
 	err = json.Unmarshal(buf.Bytes(), &result)
 	fmt.Println("resultat", result)
 

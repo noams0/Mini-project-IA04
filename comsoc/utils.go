@@ -180,3 +180,11 @@ func InverseAlternatives(tiebreak []Alternative) (c []Alternative) {
 	}
 	return
 }
+
+func IntSliceToAlternativeSlice(intSlice []int) []Alternative {
+	alternativeSlice := make([]Alternative, len(intSlice))
+	for i, v := range intSlice {
+		alternativeSlice[i] = Alternative(v)
+	}
+	return alternativeSlice
+}

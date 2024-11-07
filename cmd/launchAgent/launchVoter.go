@@ -78,6 +78,11 @@ func main() {
 	for _, ag := range list_voter {
 		ag.Vote(ballotID)
 	}
+	ballotID, _ = administrator.StartSession("stv", deadline, voterIDs, 6, tb)
+	ballotIDs = append(ballotIDs, ballotID)
+	for _, ag := range list_voter {
+		ag.Vote(ballotID)
+	}
 
 	ballotID, _ = administrator.StartSession("stv", deadline, voterIDs, 6, tb)
 	// Point/Ranking -> 6,1,4,2,3,5 // Ok ranking mais pas resultat
