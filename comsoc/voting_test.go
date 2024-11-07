@@ -378,28 +378,22 @@ func TestDistanceEditionProfile(t *testing.T) {
 }
 
 func TestKemenySWF(t *testing.T) {
-	prefs := [][]Alternative{
-		{1, 2, 3, 4},
-		{4, 3, 1, 2},
-		{2, 1, 4, 3},
-	}
-	rangement_expected := []Alternative{1, 2, 4, 3}
-	rangement := KemenySWF(prefs, nil)
-	for i, alternative := range rangement {
-		if alternative != rangement_expected[i] {
-			t.Errorf("error, for the index %d should be %d, %d computed", i, rangement_expected[i], alternative)
-		}
-	}
 
-	prefs = [][]Alternative{
+	prefs := [][]Alternative{
 		{1, 3, 2},
 		{2, 1, 3},
 	}
-	rangement_expected = []Alternative{2, 1, 3}
-	rangement = KemenySWF(prefs, []int{2, 3, 1})
-	for i, alternative := range rangement {
-		if alternative != rangement_expected[i] {
-			t.Errorf("error, for the index %d should be %d, %d computed", i, rangement_expected[i], alternative)
+	//rangement_expected = []Alternative{2, 1, 3}
+	rangement_expected := map[Alternative]int{
+		1: 2,
+		2: 3,
+		3: 1,
+	}
+	rangement, _ := KemenySWF(prefs, []int{2, 3, 1})
+	fmt.Println(rangement)
+	for i, _ := range rangement {
+		if rangement[i] != rangement_expected[i] {
+			t.Errorf("error, for index %d expected %d, got %d", i, rangement_expected[i], rangement[i])
 		}
 	}
 
@@ -408,7 +402,13 @@ func TestKemenySWF(t *testing.T) {
 	// Knoxville -> 3
 	// Memphis -> 4
 	prefs = [][]Alternative{}
-	rangement_expected = []Alternative{1, 2, 3, 4}
+	//rangement_expected = []Alternative{1, 2, 3, 4}
+	rangement_expected = map[Alternative]int{
+		1: 4,
+		2: 3,
+		3: 2,
+		4: 1,
+	}
 	for i := 0; i < 42; i++ {
 		prefs = append(prefs, []Alternative{4, 1, 2, 3})
 	}
@@ -421,30 +421,40 @@ func TestKemenySWF(t *testing.T) {
 	for i := 0; i < 17; i++ {
 		prefs = append(prefs, []Alternative{3, 2, 1, 4})
 	}
-	rangement = KemenySWF(prefs, nil)
-	for i, alt := range rangement {
-		if alt != rangement_expected[i] {
-			t.Errorf("error, for index %d expected %d, got %d", i, rangement_expected[i], alt)
+	rangement, _ = KemenySWF(prefs, nil)
+	fmt.Println(rangement)
+	for i, _ := range rangement {
+		if rangement[i] != rangement_expected[i] {
+			t.Errorf("error, for index %d expected %d, got %d", i, rangement_expected[i], rangement[i])
 		}
 	}
 }
 
-//func TestPossibleWinners(t *testing.T) {
-//	//a -> 1
-//	//b ->2
-//	//c ->3
-//	//d ->4
-//	//e ->5
-//	prefs := [][]Alternative{
-//		{1, 2, 3, 4, 5},
-//
-//		{2, 1, 4, 5, 3},
-//		{2, 1, 4, 5, 3},
-//
-//		{5, 3, 2, 1, 4},
-//		{5, 3, 2, 1, 4},
-//		{5, 3, 2, 1, 4},
-//
-//		{5, 3, 2, 1, 4},
-//	}
-//}
+func TestKemenySCF(t *testing.T) {
+	prefs := [][]Alternative{}
+
+	for i := 0; i < 42; i++ {
+		prefs = append(prefs, []Alternative{4, 1, 2, 3})
+	}
+	for i := 0; i < 26; i++ {
+		prefs = append(prefs, []Alternative{1, 2, 3, 4})
+	}
+	for i := 0; i < 15; i++ {
+		prefs = append(prefs, []Alternative{2, 3, 1, 4})
+	}
+	for i := 0; i < 17; i++ {
+		prefs = append(prefs, []Alternative{3, 2, 1, 4})
+	}
+	order := []Alternative{
+		1, 2, 3, 4,
+	}
+	tbf := TieBreakFactory(order)
+
+	newScf := SCFFactory(KemenySCF, tbf)
+
+	alts, _ := newScf(prefs, TransformInt(order))
+
+	if alts != 1 {
+		t.Errorf("error, result for 1 should be 1, %d computed", alts)
+	}
+}

@@ -123,6 +123,9 @@ func (rsa *ServerRestAgent) newBallotRest(w http.ResponseWriter, r *http.Request
 	case "stv":
 		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.StvSWF, comsoc.TieBreakFactory(req.TieBreak))
 		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.StvSCF, comsoc.TieBreakFactory(req.TieBreak))
+	case "kemeny":
+		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.KemenySWF, comsoc.TieBreakFactory(req.TieBreak))
+		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.KemenySCF, comsoc.TieBreakFactory(req.TieBreak))
 
 	default:
 		w.WriteHeader(http.StatusBadRequest)

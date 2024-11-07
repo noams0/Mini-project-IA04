@@ -119,9 +119,7 @@ func (ad Admin) GetResults(sessionID string) {
 	data, _ := json.Marshal(obj)
 
 	resp, err := http.Post(requestURL, "application/json", bytes.NewBuffer(data))
-	fmt.Println("ICI")
 	if err != nil {
-		fmt.Println("ICI")
 		fmt.Println(err)
 		return
 	}

@@ -52,7 +52,7 @@ func indexOf(alternative int, ranking []int) int {
 	return len(ranking)
 }
 
-func KemenySWF(profile Profile, tb []int) []Alternative {
+func KemenySWF(profile Profile, tb []int) (c Count, err error) {
 	var n int = len(profile[0])
 	perm := utils.FirstPermutation(n)
 	for i, _ := range perm {
@@ -99,8 +99,22 @@ func KemenySWF(profile Profile, tb []int) []Alternative {
 		// Choisir le premier élément après tri par tie-break
 		consensus = rangementsCons[0]
 	}
-	//fmt.Println("Rangement consensuelle :", rangementCons)
-	fmt.Println(rangementsCons)
-	return IntSliceToAlternativeSlice(consensus)
+	fmt.Println(consensus)
+	count := make(Count)
+	for i := 0; i < len(consensus); i++ {
+		count[Alternative(consensus[i])] = len(consensus) - i
+	}
+	fmt.Println(count)
+	return count, nil
+}
+
+func KemenySCF(p Profile, tb []int) (bestAlts []Alternative, err error) {
+	c, ok := KemenySWF(p, tb)
+	err = ok
+	if err != nil {
+		return []Alternative{}, err
+	}
+
+	return MaxCount(c), err
 
 }
