@@ -1,7 +1,6 @@
 package comsoc
 
 import (
-	"fmt"
 	"sort"
 
 	"gitlab.utc.fr/lagruesy/ia04/utils"
@@ -81,7 +80,6 @@ func KemenySWF(profile Profile, tb []int) (c Count, err error) {
 	if len(rangementsCons) == 0 {
 		consensus = rangementsCons[0]
 	} else {
-		fmt.Println("Avant T-B : ", rangementsCons)
 
 		// Trier rangementsCons selon l'ordre de tie-break `tb`
 		sort.SliceStable(rangementsCons, func(i, j int) bool {
@@ -99,12 +97,12 @@ func KemenySWF(profile Profile, tb []int) (c Count, err error) {
 		// Choisir le premier élément après tri par tie-break
 		consensus = rangementsCons[0]
 	}
-	fmt.Println(consensus)
+
 	count := make(Count)
 	for i := 0; i < len(consensus); i++ {
 		count[Alternative(consensus[i])] = len(consensus) - i
 	}
-	fmt.Println(count)
+
 	return count, nil
 }
 
