@@ -1,13 +1,9 @@
 package comsoc
 
-import "fmt"
-
 func StvSWF(p Profile, tiebreak []int) (c Count, err error) {
 
-	fmt.Println("profil", p)
-
-	// Inverse du tibreak pour avoir la pire possibilité
-	tbinv := InverseAlternatives(TransformAlternatives(tiebreak))
+	// Inverse du tiebreak pour avoir la pire possibilité
+	tbinv := InverseAlternatives(IntSliceToAlternativeSlice(tiebreak))
 	tb := TieBreakFactory(tbinv)
 
 	// pour le SwF on peut faire un map avec le nombres de tour ou le candidat est en lice
@@ -35,20 +31,12 @@ func StvSWF(p Profile, tiebreak []int) (c Count, err error) {
 
 		// Récupère les résultats du vote majoritaire
 		temp_count, _ := MajoritySWF(ptemp, nil)
-		fmt.Println(temp_count)
 
 		// Récupère l' ou les alternatives avec le plus de votes
 		// best_alts, best_values := Maxvalue(temp_count)
 
-		// Si elle a plus de la majorité
-		// if best_values[0] > len(p2)/2 {
-		// 	c[best_alts[0]] += 1 // ajoute un a cette alternative car elle gagne
-		// 	return c, nil
-		// }
-
 		// récupère le ou les pires alternatives
 		worstAlts := MinCount(temp_count)
-		fmt.Println(worstAlts)
 
 		// tie break sur les alternatives
 		worstAlt, err := tb(worstAlts)
@@ -79,15 +67,11 @@ func StvSWF(p Profile, tiebreak []int) (c Count, err error) {
 
 	}
 
-	fmt.Println("profil", p)
 	return c, nil
 }
 
 func StvSCF(p Profile, tb []int) (bestAlts []Alternative, err error) {
-	fmt.Println("Avant")
-	fmt.Println("profil", p)
 	c, ok := StvSWF(p, tb)
-	fmt.Println("Après")
 	err = ok
 
 	if err != nil {

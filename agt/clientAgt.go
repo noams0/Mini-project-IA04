@@ -99,6 +99,7 @@ func (ag Agent) Vote(sessionID string) {
 
 	resp, err := http.Post(requestURL, "application/json", bytes.NewBuffer(data))
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 
@@ -119,9 +120,7 @@ func (ad Admin) GetResults(sessionID string) {
 	data, _ := json.Marshal(obj)
 
 	resp, err := http.Post(requestURL, "application/json", bytes.NewBuffer(data))
-	fmt.Println("ICI")
 	if err != nil {
-		fmt.Println("ICI")
 		fmt.Println(err)
 		return
 	}
@@ -142,21 +141,19 @@ func (ad Admin) GetResults(sessionID string) {
 	var result rad.ResultResponse
 	result.Ranking = make([]comsoc.Alternative, 0)
 	err = json.Unmarshal(buf.Bytes(), &result)
-	fmt.Println("resultat", result)
 
 	if err != nil {
 		fmt.Println("failed unmarshalling")
 		return
 	}
-	fmt.Println()
 
 	if result.Winner == -1 {
-		fmt.Printf("Pas de gagnant de Condorcet pour le vote %s\n", sessionID)
+		fmt.Printf("\nPas de gagnant de Condorcet pour le vote %s\n", sessionID)
 	} else {
-		fmt.Printf("Le gagnant du vote %s est %d\n ", sessionID, result.Winner)
+		fmt.Printf("\nLe gagnant du vote %s est %d\n ", sessionID, result.Winner)
 	}
 	if len(result.Ranking) > 0 {
-		fmt.Printf("Et le classement est %v", result.Ranking)
+		fmt.Printf("Et le classement est %v\n", result.Ranking)
 		fmt.Println()
 	}
 }

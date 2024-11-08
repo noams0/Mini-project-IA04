@@ -15,6 +15,7 @@ func GeneratePreferences(numAgents, numAlternatives int) [][]Alternative {
 		for j := 0; j < numAlternatives; j++ {
 			prefs[j] = Alternative(j + 1)
 		}
+
 		for j := range prefs {
 			k := rand.Intn(numAlternatives)
 			prefs[j], prefs[k] = prefs[k], prefs[j]
@@ -159,15 +160,6 @@ func TransformInt(tiebreak []Alternative) (c []int) {
 
 	for i, v := range tiebreak {
 		c[i] = int(v)
-	}
-	return
-}
-
-func TransformAlternatives(tiebreak []int) (c []Alternative) {
-	c = make([]Alternative, len(tiebreak))
-
-	for i, v := range tiebreak {
-		c[i] = Alternative(v)
 	}
 	return
 }

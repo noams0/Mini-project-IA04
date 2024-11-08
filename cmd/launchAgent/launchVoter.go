@@ -66,7 +66,7 @@ func main() {
 	}
 
 	ballotID, _ = administrator.StartSession("approval", deadline, voterIDs, 6, tb)
-	//Point/Ranking -> 2, 1, 4, 6, 5 //OK
+	//Point/Ranking -> 1,5,6,4,2,3 // OK
 	ballotIDs = append(ballotIDs, ballotID)
 	for _, ag := range list_voter {
 		ag.Vote(ballotID)
@@ -84,8 +84,8 @@ func main() {
 		ag.Vote(ballotID)
 	}
 
-	ballotID, _ = administrator.StartSession("stv", deadline, voterIDs, 6, tb)
-	// Point/Ranking -> 6,1,4,2,3,5 // Ok ranking mais pas resultat
+	ballotID, _ = administrator.StartSession("kemeny", deadline, voterIDs, 6, tb)
+	// Point/Ranking -> 6,1,4,2,3,5
 	ballotIDs = append(ballotIDs, ballotID)
 	for _, ag := range list_voter {
 		ag.Vote(ballotID)

@@ -11,11 +11,9 @@ func ApprovalSWF(p Profile, thresholds []int) (count Count, err error) {
 		return nil, fmt.Errorf("not the same number")
 	}
 
-	fmt.Println(len(p[0]))
 	for i := range p[0] {
 		count[Alternative(i+1)] = 0
 	}
-	fmt.Println(p)
 
 	for ind, prefs := range p {
 

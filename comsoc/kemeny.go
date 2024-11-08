@@ -1,13 +1,12 @@
 package comsoc
 
 import (
-	"fmt"
-	"gitlab.utc.fr/lagruesy/ia04/utils"
 	"sort"
+
+	"gitlab.utc.fr/lagruesy/ia04/utils"
 )
 
-//Rajouter gestion d'erreurs
-
+// Rajouter gestion d'erreurs
 func DistanceEdition(pref1, pref2 []Alternative) int {
 	distance := 0
 	n := len(pref1)
@@ -52,7 +51,7 @@ func indexOf(alternative int, ranking []int) int {
 	return len(ranking)
 }
 
-func KemenySWF(profile Profile, tb []int) []Alternative {
+func KemenySWF(profile Profile, tb []int) (c Count, err error) {
 	var n int = len(profile[0])
 	perm := utils.FirstPermutation(n)
 	for i, _ := range perm {
@@ -81,7 +80,6 @@ func KemenySWF(profile Profile, tb []int) []Alternative {
 	if len(rangementsCons) == 0 {
 		consensus = rangementsCons[0]
 	} else {
-		fmt.Println("Avant T-B : ", rangementsCons)
 
 		// Trier rangementsCons selon l'ordre de tie-break `tb`
 		sort.SliceStable(rangementsCons, func(i, j int) bool {
@@ -99,8 +97,22 @@ func KemenySWF(profile Profile, tb []int) []Alternative {
 		// Choisir le premier élément après tri par tie-break
 		consensus = rangementsCons[0]
 	}
-	//fmt.Println("Rangement consensuelle :", rangementCons)
-	fmt.Println(rangementsCons)
-	return IntSliceToAlternativeSlice(consensus)
+
+	count := make(Count)
+	for i := 0; i < len(consensus); i++ {
+		count[Alternative(consensus[i])] = len(consensus) - i
+	}
+
+	return count, nil
+}
+
+func KemenySCF(p Profile, tb []int) (bestAlts []Alternative, err error) {
+	c, ok := KemenySWF(p, tb)
+	err = ok
+	if err != nil {
+		return []Alternative{}, err
+	}
+
+	return MaxCount(c), err
 
 }

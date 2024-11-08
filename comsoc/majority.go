@@ -11,9 +11,6 @@ func MajoritySWF(p Profile, _ []int) (count Count, err error) {
 	}
 
 	for _, prefs := range p {
-		// if err := CheckProfile(prefs, candid); err != nil {
-		//	return nil, err
-		// }
 		count[prefs[0]]++
 	}
 	return count, nil
