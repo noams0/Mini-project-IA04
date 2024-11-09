@@ -44,7 +44,7 @@ func main() {
 	agt5 := agt.NewAgent("agt5", agt5_preferences, agt5_options)
 	list_voter = append(list_voter, agt5)
 
-	ballotID, _ := administrator.StartSession("majority", deadline, voterIDs, 6, tb)
+	ballotID, _ := administrator.StartVotingSession("majority", deadline, voterIDs, 6, tb)
 	//Point/Ranking -> 1, 6, 4, 2, 3, 5 // OK
 	ballotIDs = append(ballotIDs, ballotID)
 	for _, ag := range list_voter {
@@ -52,40 +52,40 @@ func main() {
 	}
 
 	//Point/Ranking ->2 : 13 ,3 : 13 ,4: 13, 1: 12, 5 : 12, 6: 12
-	ballotID, _ = administrator.StartSession("borda", deadline, voterIDs, 6, tb)
+	ballotID, _ = administrator.StartVotingSession("borda", deadline, voterIDs, 6, tb)
 	ballotIDs = append(ballotIDs, ballotID)
 	for _, ag := range list_voter {
 		ag.Vote(ballotID)
 	}
 
 	//Point/Ranking -> 3 : 3, 2 : 1, 1 : -1, 4:-1, 5:-1 , 6:-1
-	ballotID, _ = administrator.StartSession("copeland", deadline, voterIDs, 6, tb)
+	ballotID, _ = administrator.StartVotingSession("copeland", deadline, voterIDs, 6, tb)
 	ballotIDs = append(ballotIDs, ballotID)
 	for _, ag := range list_voter {
 		ag.Vote(ballotID)
 	}
 
-	ballotID, _ = administrator.StartSession("approval", deadline, voterIDs, 6, tb)
+	ballotID, _ = administrator.StartVotingSession("approval", deadline, voterIDs, 6, tb)
 	//Point/Ranking -> 1,5,6,4,2,3 // OK
 	ballotIDs = append(ballotIDs, ballotID)
 	for _, ag := range list_voter {
 		ag.Vote(ballotID)
 	}
 
-	ballotID, _ = administrator.StartSession("condorcet", deadline, voterIDs, 6, tb)
+	ballotID, _ = administrator.StartVotingSession("condorcet", deadline, voterIDs, 6, tb)
 	//Point/Ranking -> 3, 2, 1, 4, 5, 6 //OK
 	ballotIDs = append(ballotIDs, ballotID)
 	for _, ag := range list_voter {
 		ag.Vote(ballotID)
 	}
-	ballotID, _ = administrator.StartSession("stv", deadline, voterIDs, 6, tb)
+	ballotID, _ = administrator.StartVotingSession("stv", deadline, voterIDs, 6, tb)
 	// Point/Ranking -> 6,1,4,2,3,5
 	ballotIDs = append(ballotIDs, ballotID)
 	for _, ag := range list_voter {
 		ag.Vote(ballotID)
 	}
 
-	ballotID, _ = administrator.StartSession("kemeny", deadline, voterIDs, 6, tb)
+	ballotID, _ = administrator.StartVotingSession("kemeny", deadline, voterIDs, 6, tb)
 	// Point/Ranking -> 2 4 3 6 1 5
 	ballotIDs = append(ballotIDs, ballotID)
 	for _, ag := range list_voter {

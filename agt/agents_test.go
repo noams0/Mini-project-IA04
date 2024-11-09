@@ -87,7 +87,7 @@ func TestGeneralExceptionsOptionsVote(t *testing.T) {
 
 	list_voter = append(list_voter, agt7)
 
-	ballotID, _ := administrator.StartSession("majority", deadline, voterIDs, 6, tb)
+	ballotID, _ := administrator.StartVotingSession("majority", deadline, voterIDs, 6, tb)
 	//Point/Ranking -> 1, 2, 4, 6, 3, 5 OK
 	ballotIDs = append(ballotIDs, ballotID)
 	for _, ag := range list_voter {
@@ -95,39 +95,39 @@ func TestGeneralExceptionsOptionsVote(t *testing.T) {
 	}
 
 	//Point/Ranking ->2 : 19 / 3 : 17 / 4: 15 / 1 : 12 / 6 :  8/  5 : 6 OK
-	ballotID, _ = administrator.StartSession("borda", deadline, voterIDs, 6, tb)
+	ballotID, _ = administrator.StartVotingSession("borda", deadline, voterIDs, 6, tb)
 	ballotIDs = append(ballotIDs, ballotID)
 	for _, ag := range list_voter {
 		ag.Vote(ballotID)
 	}
 
 	//Point/Ranking -> 2 : 5 / 3 : 3 / 1 : -1  / 4 : -1 / 5 : -3 / 6 : -5 OK
-	ballotID, _ = administrator.StartSession("copeland", deadline, voterIDs, 6, tb)
+	ballotID, _ = administrator.StartVotingSession("copeland", deadline, voterIDs, 6, tb)
 	ballotIDs = append(ballotIDs, ballotID)
 	for _, ag := range list_voter {
 		ag.Vote(ballotID)
 	}
 
-	ballotID, _ = administrator.StartSession("approval", deadline, voterIDs, 6, tb)
+	ballotID, _ = administrator.StartVotingSession("approval", deadline, voterIDs, 6, tb)
 	//Point/Ranking -> 1,5,6,4,2,3 // OK
 	ballotIDs = append(ballotIDs, ballotID)
 	for _, ag := range list_voter {
 		ag.Vote(ballotID)
 	}
 
-	ballotID, _ = administrator.StartSession("condorcet", deadline, voterIDs, 6, tb)
+	ballotID, _ = administrator.StartVotingSession("condorcet", deadline, voterIDs, 6, tb)
 	//Point/Ranking -> 2, 1, 4, 6, 5 //OK
 	ballotIDs = append(ballotIDs, ballotID)
 	for _, ag := range list_voter {
 		ag.Vote(ballotID)
 	}
-	ballotID, _ = administrator.StartSession("stv", deadline, voterIDs, 6, tb)
+	ballotID, _ = administrator.StartVotingSession("stv", deadline, voterIDs, 6, tb)
 	ballotIDs = append(ballotIDs, ballotID)
 	for _, ag := range list_voter {
 		ag.Vote(ballotID)
 	}
 
-	ballotID, _ = administrator.StartSession("kemeny", deadline, voterIDs, 6, tb)
+	ballotID, _ = administrator.StartVotingSession("kemeny", deadline, voterIDs, 6, tb)
 	// Point/Ranking -> 6,1,4,2,3,5
 	ballotIDs = append(ballotIDs, ballotID)
 	for _, ag := range list_voter {
@@ -172,7 +172,7 @@ func TestWrongTieBreak(t *testing.T) {
 	agt3 := NewAgent("agt3", agt3_preferences, nil)
 	list_voter = append(list_voter, agt3)
 
-	ballotID, err := administrator.StartSession("majority", deadline, voterIDs, 6, tb)
+	ballotID, err := administrator.StartVotingSession("majority", deadline, voterIDs, 6, tb)
 	//Point/Ranking -> 1, 2, 4, 6, 3, 5 OK
 
 	ballotIDs = append(ballotIDs, ballotID)
@@ -225,7 +225,7 @@ func TestWrongDeadline(t *testing.T) {
 	agt3 := NewAgent("agt3", agt3_preferences, nil)
 	list_voter = append(list_voter, agt3)
 
-	ballotID, err := administrator.StartSession("majority", deadline, voterIDs, 6, tb)
+	ballotID, err := administrator.StartVotingSession("majority", deadline, voterIDs, 6, tb)
 	//Point/Ranking -> 1, 2, 4, 6, 3, 5 OK
 
 	ballotIDs = append(ballotIDs, ballotID)
@@ -278,7 +278,7 @@ func TestVoteToLate(t *testing.T) {
 	agt3 := NewAgent("agt3", agt3_preferences, nil)
 	list_voter = append(list_voter, agt3)
 
-	ballotID, err := administrator.StartSession("majority", deadline, voterIDs, 6, tb)
+	ballotID, err := administrator.StartVotingSession("majority", deadline, voterIDs, 6, tb)
 	//Point/Ranking -> 1, 2, 4, 6, 3, 5 OK
 
 	ballotIDs = append(ballotIDs, ballotID)
@@ -338,7 +338,7 @@ func TestVoteNotAuthorized(t *testing.T) {
 	agt3 := NewAgent("agt3", agt3_preferences, nil)
 	list_voter = append(list_voter, agt3)
 
-	ballotID, err := administrator.StartSession("majority", deadline, voterIDs, 6, tb)
+	ballotID, err := administrator.StartVotingSession("majority", deadline, voterIDs, 6, tb)
 	//Point/Ranking -> 1, 2, 4, 6, 3, 5 OK
 
 	ballotIDs = append(ballotIDs, ballotID)
@@ -393,7 +393,7 @@ func TestResultsToEarly(t *testing.T) {
 	agt3 := NewAgent("agt3", agt3_preferences, nil)
 	list_voter = append(list_voter, agt3)
 
-	ballotID, err := administrator.StartSession("majority", deadline, voterIDs, 6, tb)
+	ballotID, err := administrator.StartVotingSession("majority", deadline, voterIDs, 6, tb)
 	//Point/Ranking -> 1, 2, 4, 6, 3, 5 OK
 
 	ballotIDs = append(ballotIDs, ballotID)
@@ -456,7 +456,7 @@ func TestWrongRule(t *testing.T) {
 	agt3 := NewAgent("agt3", agt3_preferences, nil)
 	list_voter = append(list_voter, agt3)
 
-	ballotID, err := administrator.StartSession("jhonny", deadline, voterIDs, 6, tb)
+	ballotID, err := administrator.StartVotingSession("jhonny", deadline, voterIDs, 6, tb)
 	//Point/Ranking -> 1, 2, 4, 6, 3, 5 OK
 	if err != nil {
 		fmt.Println(err) // affiche bien l'erreur de deadline trop tôt
@@ -518,7 +518,7 @@ func TestVoteDejaEffectuerEtMauvaisBallotEtTropTard(t *testing.T) {
 	agt3 := NewAgent("agt3", agt3_preferences, nil)
 	list_voter = append(list_voter, agt3)
 
-	ballotID, err := administrator.StartSession("majority", deadline, voterIDs, 6, tb)
+	ballotID, err := administrator.StartVotingSession("majority", deadline, voterIDs, 6, tb)
 	//Point/Ranking -> 1, 2, 4, 6, 3, 5 OK
 	if err != nil {
 		fmt.Println(err) // affiche bien l'erreur de deadline trop tôt
@@ -583,7 +583,7 @@ func TestResultNotFound(t *testing.T) {
 	agt3 := NewAgent("agt3", agt3_preferences, nil)
 	list_voter = append(list_voter, agt3)
 
-	ballotID, err := administrator.StartSession("majority", deadline, voterIDs, 6, tb)
+	ballotID, err := administrator.StartVotingSession("majority", deadline, voterIDs, 6, tb)
 	//Point/Ranking -> 1, 2, 4, 6, 3, 5 OK
 	if err != nil {
 		fmt.Println(err) // affiche bien l'erreur de deadline trop tôt
@@ -644,7 +644,7 @@ func TestMemeVotantsMultiples(t *testing.T) {
 	// Bien pas repris en compte !
 	list_voter = append(list_voter, agt1)
 
-	ballotID, err := administrator.StartSession("majority", deadline, voterIDs, 6, tb)
+	ballotID, err := administrator.StartVotingSession("majority", deadline, voterIDs, 6, tb)
 	//Point/Ranking -> 1, 2, 4, 6, 3, 5 OK
 	if err != nil {
 		fmt.Println(err) // affiche bien l'erreur de deadline trop tôt

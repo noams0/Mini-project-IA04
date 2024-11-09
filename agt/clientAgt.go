@@ -49,7 +49,7 @@ func (ad Admin) DecodeNewBallotResponse(r *http.Response) (rad.NewBallotResponse
 	return resp, nil
 }
 
-func (ad Admin) StartSession(rule string, deadline string, voterIds []string, alts int, tieBreak []int) (res string, err error) {
+func (ad Admin) StartVotingSession(rule string, deadline string, voterIds []string, alts int, tieBreak []int) (res string, err error) {
 
 	requestURL := "http://localhost:8080/new_ballot"
 
