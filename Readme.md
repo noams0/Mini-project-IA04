@@ -12,24 +12,35 @@ Ce projet implémente un serveur de vote en Go, avec plusieurs méthodes de vote
 
 ## I - Installation
 
-Pour installer automatiquement ce serveur de vote, exécutez la commande suivante :
 
-```bash
-go get github.com/noams0/Mini-project-IA04
+###  Prérequis
+
+Go 1.22 ou supérieur installé sur votre machine.
+
+### Installer les exécutables
+
+Exécutez les commandes ci-dessous pour installer les binaires dans votre `$GOPATH/bin` ou dans `$HOME/go/bin` 
+
+1. **Installer `launchServer`** :
+ ```bash
+ go install github.com/noams0/Mini-project-IA04/cmd/launchServer@latest
+  ```
+2. **Installer `launchAgent`** :
+ ```bash
+go install github.com/noams0/Mini-project-IA04/cmd/launchAgent@latest
 ```
-
 ## II - Démarrage du serveur et des agents
 
 ### Lancer le serveur
 
 Pour démarrer le serveur, utilisez la commande suivante :
-`go run cmd/server.go`
+`launchServer`
 
 Le serveur sera lancé et écoutera les requêtes REST pour la création de scrutins, l’enregistrement de votes, et la récupération des résultats.
 
 ### Lancer les agents
 Une fois le serveur lancé, vous pouvez soit effectué des véritable requêtes ou les lancer automatiquement avec la commande suivante :
-`go run cmd/launchAgent.go`
+`launchAgent`
 
 Cette commande permet d’initier les agents, d'envoyer les votes au serveur et de récupérer les résultats une fois le vote terminé.
 
