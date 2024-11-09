@@ -17,9 +17,9 @@ func TestGeneralExceptionsOptionsVote(t *testing.T) {
 	deadline := time.Now().Add(4 * time.Second).Format(time.RFC3339)
 
 	//Tie-break du plus petit au plus gros
-	tb := make([]comsoc.Alternative, 6)
+	tb := make([]int, 6)
 	for i := 1; i <= 6; i++ {
-		tb[i-1] = comsoc.Alternative(i)
+		tb[i-1] = i
 	}
 
 	voterIDs := []string{"agt1", "agt2", "agt3", "agt4", "agt5", "agt6", "agt7"}
@@ -151,7 +151,7 @@ func TestWrongTieBreak(t *testing.T) {
 	deadline := time.Now().Add(4 * time.Second).Format(time.RFC3339)
 
 	//Tie-break du plus petit au plus gros
-	tb := []comsoc.Alternative{2, 3, 4, 5, 6, 7}
+	tb := []int{2, 3, 4, 5, 6, 7}
 
 	voterIDs := []string{"agt1", "agt2", "agt3"}
 	ballotIDs := []string{}
@@ -204,7 +204,7 @@ func TestWrongDeadline(t *testing.T) {
 	deadline := time.Now().Add(-4 * time.Second).Format(time.RFC3339)
 
 	//Tie-break du plus petit au plus gros
-	tb := []comsoc.Alternative{1, 2, 3, 4, 5, 6}
+	tb := []int{1, 2, 3, 4, 5, 6}
 
 	voterIDs := []string{"agt1", "agt2", "agt3"}
 	ballotIDs := []string{}
@@ -257,7 +257,7 @@ func TestVoteToLate(t *testing.T) {
 	deadline := time.Now().Add(4 * time.Second).Format(time.RFC3339)
 
 	//Tie-break du plus petit au plus gros
-	tb := []comsoc.Alternative{1, 2, 3, 4, 5, 6}
+	tb := []int{1, 2, 3, 4, 5, 6}
 
 	voterIDs := []string{"agt1", "agt2", "agt3"}
 	ballotIDs := []string{}
@@ -317,7 +317,7 @@ func TestVoteNotAuthorized(t *testing.T) {
 	deadline := time.Now().Add(4 * time.Second).Format(time.RFC3339)
 
 	//Tie-break du plus petit au plus gros
-	tb := []comsoc.Alternative{1, 2, 3, 4, 5, 6}
+	tb := []int{1, 2, 3, 4, 5, 6}
 
 	voterIDs := []string{"agt1", "agt2"}
 	ballotIDs := []string{}
@@ -372,7 +372,7 @@ func TestResultsToEarly(t *testing.T) {
 	deadline := time.Now().Add(4 * time.Second).Format(time.RFC3339)
 
 	//Tie-break du plus petit au plus gros
-	tb := []comsoc.Alternative{1, 2, 3, 4, 5, 6}
+	tb := []int{1, 2, 3, 4, 5, 6}
 
 	voterIDs := []string{"agt1", "agt2", "agt3"}
 	ballotIDs := []string{}
@@ -417,6 +417,247 @@ func TestResultsToEarly(t *testing.T) {
 
 	// Attends assez
 	time.Sleep(2 * time.Second)
+
+	for _, ballot := range ballotIDs {
+		administrator.GetResults(ballot)
+	}
+
+}
+
+func TestWrongRule(t *testing.T) {
+
+	// Lauching the server
+	server := NewServerRestAgent(":8080")
+	go server.Start()
+
+	/*creating new ballot*/
+	administrator := NewAdmin("adminAgent")
+	deadline := time.Now().Add(4 * time.Second).Format(time.RFC3339)
+
+	//Tie-break du plus petit au plus gros
+	tb := []int{1, 2, 3, 4, 5, 6}
+
+	voterIDs := []string{"agt1", "agt2", "agt3"}
+	ballotIDs := []string{}
+	list_voter := []*Agent{}
+
+	/*creating voting Agent*/
+
+	agt1_preferences := []comsoc.Alternative{1, 5, 2, 4, 3, 6}
+
+	agt2_preferences := []comsoc.Alternative{6, 3, 2, 1, 5, 4}
+
+	agt3_preferences := []comsoc.Alternative{6, 3, 2, 1, 5, 4}
+
+	agt1 := NewAgent("agt1", agt1_preferences, nil)
+	list_voter = append(list_voter, agt1)
+	agt2 := NewAgent("agt2", agt2_preferences, nil)
+	list_voter = append(list_voter, agt2)
+	agt3 := NewAgent("agt3", agt3_preferences, nil)
+	list_voter = append(list_voter, agt3)
+
+	ballotID, err := administrator.StartSession("jhonny", deadline, voterIDs, 6, tb)
+	//Point/Ranking -> 1, 2, 4, 6, 3, 5 OK
+	if err != nil {
+		fmt.Println(err) // affiche bien l'erreur de deadline trop tôt
+		return
+	}
+
+	ballotIDs = append(ballotIDs, ballotID)
+
+	for _, ag := range list_voter {
+		ag.Vote(ballotID)
+	}
+
+	// Attend pas assez avant le résultat
+	time.Sleep(2 * time.Second)
+
+	for _, ballot := range ballotIDs {
+		administrator.GetResults(ballot)
+	}
+	// Affiche bien l'erreur
+
+	// Attends assez
+	time.Sleep(2 * time.Second)
+
+	for _, ballot := range ballotIDs {
+		administrator.GetResults(ballot)
+	}
+
+}
+
+func TestVoteDejaEffectuerEtMauvaisBallotEtTropTard(t *testing.T) {
+
+	// Lauching the server
+	server := NewServerRestAgent(":8080")
+	go server.Start()
+
+	/*creating new ballot*/
+	administrator := NewAdmin("adminAgent")
+	deadline := time.Now().Add(4 * time.Second).Format(time.RFC3339)
+
+	//Tie-break du plus petit au plus gros
+	tb := []int{1, 2, 3, 4, 5, 6}
+
+	voterIDs := []string{"agt1", "agt2", "agt3"}
+	ballotIDs := []string{}
+	list_voter := []*Agent{}
+
+	/*creating voting Agent*/
+
+	agt1_preferences := []comsoc.Alternative{1, 5, 2, 4, 3, 6}
+
+	agt2_preferences := []comsoc.Alternative{6, 3, 2, 1, 5, 4}
+
+	agt3_preferences := []comsoc.Alternative{6, 3, 2, 1, 5, 4}
+
+	agt1 := NewAgent("agt1", agt1_preferences, nil)
+	list_voter = append(list_voter, agt1)
+	agt2 := NewAgent("agt2", agt2_preferences, nil)
+	list_voter = append(list_voter, agt2)
+	agt3 := NewAgent("agt3", agt3_preferences, nil)
+	list_voter = append(list_voter, agt3)
+
+	ballotID, err := administrator.StartSession("majority", deadline, voterIDs, 6, tb)
+	//Point/Ranking -> 1, 2, 4, 6, 3, 5 OK
+	if err != nil {
+		fmt.Println(err) // affiche bien l'erreur de deadline trop tôt
+		return
+	}
+
+	ballotIDs = append(ballotIDs, ballotID)
+
+	for i, ag := range list_voter {
+		if i != len(list_voter)-1 {
+			ag.Vote(ballotID)
+		}
+
+	}
+
+	// Revote
+	list_voter[0].Vote(ballotID)
+
+	// vote dans ballot pas implémentés
+	//list_voter[len(list_voter)-1].Vote("PRairIe")
+
+	time.Sleep(5 * time.Second)
+
+	// Vote trop tard pour agent 3
+	list_voter[len(list_voter)-1].Vote(ballotID)
+
+	for _, ballot := range ballotIDs {
+		administrator.GetResults(ballot)
+	}
+
+}
+
+func TestResultNotFound(t *testing.T) {
+
+	// Lauching the server
+	server := NewServerRestAgent(":8080")
+	go server.Start()
+
+	/*creating new ballot*/
+	administrator := NewAdmin("adminAgent")
+	deadline := time.Now().Add(4 * time.Second).Format(time.RFC3339)
+
+	//Tie-break du plus petit au plus gros
+	tb := []int{1, 2, 3, 4, 5, 6}
+
+	voterIDs := []string{"agt1", "agt2", "agt3"}
+	ballotIDs := []string{}
+	list_voter := []*Agent{}
+
+	/*creating voting Agent*/
+
+	agt1_preferences := []comsoc.Alternative{1, 5, 2, 4, 3, 6}
+
+	agt2_preferences := []comsoc.Alternative{6, 3, 2, 1, 5, 4}
+
+	agt3_preferences := []comsoc.Alternative{6, 3, 2, 1, 5, 4}
+
+	agt1 := NewAgent("agt1", agt1_preferences, nil)
+	list_voter = append(list_voter, agt1)
+	agt2 := NewAgent("agt2", agt2_preferences, nil)
+	list_voter = append(list_voter, agt2)
+	agt3 := NewAgent("agt3", agt3_preferences, nil)
+	list_voter = append(list_voter, agt3)
+
+	ballotID, err := administrator.StartSession("majority", deadline, voterIDs, 6, tb)
+	//Point/Ranking -> 1, 2, 4, 6, 3, 5 OK
+	if err != nil {
+		fmt.Println(err) // affiche bien l'erreur de deadline trop tôt
+		return
+	}
+
+	ballotIDs = append(ballotIDs, ballotID)
+
+	for _, ag := range list_voter {
+		ag.Vote(ballotID)
+	}
+
+	time.Sleep(5 * time.Second)
+
+	for _, ballot := range ballotIDs {
+		administrator.GetResults(ballot)
+	}
+
+	administrator.GetResults("BallotInexistant")
+
+}
+
+func TestMemeVotantsMultiples(t *testing.T) {
+
+	// Lauching the server
+	server := NewServerRestAgent(":8080")
+	go server.Start()
+
+	/*creating new ballot*/
+	administrator := NewAdmin("adminAgent")
+	deadline := time.Now().Add(4 * time.Second).Format(time.RFC3339)
+
+	//Tie-break du plus petit au plus gros
+	tb := []int{1, 2, 3, 4, 5, 6}
+
+	// erreur dans la liste des agents 2 fois le même
+	// Ne sera pas capable de revoter !
+	voterIDs := []string{"agt1", "agt2", "agt3", "agt1"}
+	ballotIDs := []string{}
+	list_voter := []*Agent{}
+
+	/*creating voting Agent*/
+
+	agt1_preferences := []comsoc.Alternative{1, 5, 2, 4, 3, 6}
+
+	agt2_preferences := []comsoc.Alternative{6, 3, 2, 1, 5, 4}
+
+	agt3_preferences := []comsoc.Alternative{6, 3, 2, 1, 5, 4}
+
+	agt1 := NewAgent("agt1", agt1_preferences, nil)
+	list_voter = append(list_voter, agt1)
+	agt2 := NewAgent("agt2", agt2_preferences, nil)
+	list_voter = append(list_voter, agt2)
+	agt3 := NewAgent("agt3", agt3_preferences, nil)
+	list_voter = append(list_voter, agt3)
+
+	// Deux fois le même agent dans les votes
+	// Bien pas repris en compte !
+	list_voter = append(list_voter, agt1)
+
+	ballotID, err := administrator.StartSession("majority", deadline, voterIDs, 6, tb)
+	//Point/Ranking -> 1, 2, 4, 6, 3, 5 OK
+	if err != nil {
+		fmt.Println(err) // affiche bien l'erreur de deadline trop tôt
+		return
+	}
+
+	ballotIDs = append(ballotIDs, ballotID)
+
+	for _, ag := range list_voter {
+		ag.Vote(ballotID)
+	}
+
+	time.Sleep(5 * time.Second)
 
 	for _, ballot := range ballotIDs {
 		administrator.GetResults(ballot)

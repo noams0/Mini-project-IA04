@@ -49,7 +49,7 @@ func (ad Admin) DecodeNewBallotResponse(r *http.Response) (rad.NewBallotResponse
 	return resp, nil
 }
 
-func (ad Admin) StartSession(rule string, deadline string, voterIds []string, alts int64, tieBreak []comsoc.Alternative) (res string, err error) {
+func (ad Admin) StartSession(rule string, deadline string, voterIds []string, alts int, tieBreak []int) (res string, err error) {
 
 	requestURL := "http://localhost:8080/new_ballot"
 
@@ -88,10 +88,12 @@ func (ad Admin) StartSession(rule string, deadline string, voterIds []string, al
 func (ag Agent) Vote(sessionID string) {
 	requestURL := "http://localhost:8080/vote"
 
+	PrefsInt := comsoc.TransformInt(ag.prefs)
+
 	vote := rad.VoteRequest{
 		AgentID:  ag.agentId,
 		BallotID: sessionID,
-		Prefs:    ag.prefs,
+		Prefs:    PrefsInt,
 		Options:  ag.options,
 	}
 
@@ -139,7 +141,7 @@ func (ad Admin) GetResults(sessionID string) {
 	}
 
 	var result rad.ResultResponse
-	result.Ranking = make([]comsoc.Alternative, 0)
+	result.Ranking = make([]int, 0)
 	err = json.Unmarshal(buf.Bytes(), &result)
 
 	if err != nil {

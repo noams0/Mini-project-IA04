@@ -1,20 +1,18 @@
 package tp3
 
-import "tp3/comsoc"
-
 type NewBallotRequest struct {
-	Rule     string               `json:"rule"`
-	Deadline string               `json:"deadline"`
-	VoterIds []string             `json:"voter-ids"`
-	Alts     int64                `json:"#alts"`
-	TieBreak []comsoc.Alternative `json:"tie-break"`
+	Rule     string   `json:"rule"`
+	Deadline string   `json:"deadline"`
+	VoterIds []string `json:"voter-ids"`
+	Alts     int      `json:"#alts"`
+	TieBreak []int    `json:"tie-break"`
 }
 
 type VoteRequest struct {
-	AgentID  string               `json:"agent-id"`
-	BallotID string               `json:"ballot-id"`
-	Prefs    []comsoc.Alternative `json:"prefs"`
-	Options  []int                `json:"options"`
+	AgentID  string `json:"agent-id"`
+	BallotID string `json:"ballot-id"`
+	Prefs    []int  `json:"prefs"`
+	Options  []int  `json:"options"`
 }
 
 type ResultsRequest struct {
@@ -27,6 +25,6 @@ type NewBallotResponse struct {
 }
 
 type ResultResponse struct {
-	Winner  comsoc.Alternative   `json:"winner"`
-	Ranking []comsoc.Alternative `json:"ranking"`
+	Winner  int   `json:"winner"`
+	Ranking []int `json:"ranking"`
 }

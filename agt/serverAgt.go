@@ -89,19 +89,24 @@ func (rsa *ServerRestAgent) newBallotRest(w http.ResponseWriter, r *http.Request
 	defer rsa.Unlock()
 	ballotName := fmt.Sprintf("scurtinNum%d", rsa.count)
 	voterIDMap := make(map[string]bool)
+
+	// Si met 2 fois le même agent ne pose pas de problème
 	for _, name := range req.VoterIds {
 		voterIDMap[name] = false
 	}
 
+	// Transformer le tie-break de int en alternatives
+	TieBreakAlt := comsoc.IntSliceToAlternativeSlice(req.TieBreak)
+
 	// Créer le newBallot mais on ne connait pas les tresholds s'il y en a, ils seront passé pendant le vote
 	// Pour l'instant on initialise à un slice vide
-	newBallot := *NewBallotAgent(ballotName, req.Rule, deadline, voterIDMap, make([]comsoc.Alternative, 0), req.TieBreak, nil)
+	newBallot := *NewBallotAgent(ballotName, req.Rule, deadline, voterIDMap, make([]comsoc.Alternative, 0), TieBreakAlt, nil)
 
-	for i := int64(0); i < req.Alts; i++ {
+	for i := int(0); i < req.Alts; i++ {
 		newBallot.alternatives = append(newBallot.alternatives, comsoc.Alternative(i))
 	}
 
-	err = comsoc.CheckProfile(req.TieBreak, newBallot.alternatives)
+	err = comsoc.CheckProfile(TieBreakAlt, newBallot.alternatives)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		log.Println("Erreur dans la formation du tie-break")
@@ -110,29 +115,29 @@ func (rsa *ServerRestAgent) newBallotRest(w http.ResponseWriter, r *http.Request
 
 	switch req.Rule {
 	case "majority":
-		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.MajoritySWF, comsoc.TieBreakFactory(req.TieBreak))
-		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.MajoritySCF, comsoc.TieBreakFactory(req.TieBreak))
+		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.MajoritySWF, comsoc.TieBreakFactory(TieBreakAlt))
+		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.MajoritySCF, comsoc.TieBreakFactory(TieBreakAlt))
 	case "borda":
-		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.BordaSWF, comsoc.TieBreakFactory(req.TieBreak))
-		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.BordaSCF, comsoc.TieBreakFactory(req.TieBreak))
+		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.BordaSWF, comsoc.TieBreakFactory(TieBreakAlt))
+		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.BordaSCF, comsoc.TieBreakFactory(TieBreakAlt))
 	case "copeland":
-		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.CopelandSWF, comsoc.TieBreakFactory(req.TieBreak))
-		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.CopelandSCF, comsoc.TieBreakFactory(req.TieBreak))
+		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.CopelandSWF, comsoc.TieBreakFactory(TieBreakAlt))
+		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.CopelandSCF, comsoc.TieBreakFactory(TieBreakAlt))
 	case "approval":
-		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.ApprovalSWF, comsoc.TieBreakFactory(req.TieBreak))
-		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.ApprovalSCF, comsoc.TieBreakFactory(req.TieBreak))
+		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.ApprovalSWF, comsoc.TieBreakFactory(TieBreakAlt))
+		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.ApprovalSCF, comsoc.TieBreakFactory(TieBreakAlt))
 	case "condorcet":
-		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.CopelandSWF, comsoc.TieBreakFactory(req.TieBreak))
-		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.CondorcetWinner, comsoc.TieBreakFactory(req.TieBreak))
+		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.CopelandSWF, comsoc.TieBreakFactory(TieBreakAlt))
+		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.CondorcetWinner, comsoc.TieBreakFactory(TieBreakAlt))
 	case "stv":
-		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.StvSWF, comsoc.TieBreakFactory(req.TieBreak))
-		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.StvSCF, comsoc.TieBreakFactory(req.TieBreak))
+		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.StvSWF, comsoc.TieBreakFactory(TieBreakAlt))
+		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.StvSCF, comsoc.TieBreakFactory(TieBreakAlt))
 	case "kemeny":
-		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.KemenySWF, comsoc.TieBreakFactory(req.TieBreak))
-		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.KemenySCF, comsoc.TieBreakFactory(req.TieBreak))
+		newBallot.ruleSWF = comsoc.SWFFactory(comsoc.KemenySWF, comsoc.TieBreakFactory(TieBreakAlt))
+		newBallot.ruleSCF = comsoc.SCFFactory(comsoc.KemenySCF, comsoc.TieBreakFactory(TieBreakAlt))
 
 	default:
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotImplemented)
 		fmt.Fprint(w, "Méthode de vote non connu")
 		return
 	}
@@ -193,19 +198,23 @@ func (rsa *ServerRestAgent) vote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Transforme les préférences en alternatives
+	PrefsAlt := comsoc.IntSliceToAlternativeSlice(req.Prefs)
+
 	//Regarder si l'agent a bien donné ses préférences
-	if comsoc.CheckProfile(req.Prefs, ballotWanted.alternatives) != nil {
+	if comsoc.CheckProfile(PrefsAlt, ballotWanted.alternatives) != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, "Le bulletin n'est pas correcte")
 		return
 	}
 
 	//Ajour les preferences du votant au Profile du vote
-	ballotWanted.profile = append(ballotWanted.profile, req.Prefs)
+	ballotWanted.profile = append(ballotWanted.profile, PrefsAlt)
 
 	// Ajouts des options uniquement pour le approval.
 	var treshold int
 	if req.Options != nil && len(req.Options) != 0 {
+
 		// Vérification de req.Options de 0
 		// doit être positif et ne pas être supérieur aux nombres d'alternatives
 		if req.Options[0] > 0 && req.Options[0] <= len(ballotWanted.alternatives) {
@@ -264,14 +273,14 @@ func (rsa *ServerRestAgent) results(w http.ResponseWriter, r *http.Request) {
 	if ballotWanted.rulename != "approval" {
 		ranking, _ = ballotWanted.ruleSWF(ballotWanted.profile, comsoc.TransformInt(ballotWanted.tiebreak))
 		winner, _ = ballotWanted.ruleSCF(ballotWanted.profile, comsoc.TransformInt(ballotWanted.tiebreak))
-	} else { // Si approval met le thresholds
+	} else { // Si approval met les thresholds
 		ranking, _ = ballotWanted.ruleSWF(ballotWanted.profile, ballotWanted.thresholds)
 		winner, _ = ballotWanted.ruleSCF(ballotWanted.profile, ballotWanted.thresholds)
 	}
 
 	var resp rad.ResultResponse
-	resp.Ranking = ranking
-	resp.Winner = winner
+	resp.Ranking = comsoc.TransformInt(ranking)
+	resp.Winner = int(winner)
 
 	serial, _ := json.Marshal(resp)
 	w.WriteHeader(http.StatusOK)
