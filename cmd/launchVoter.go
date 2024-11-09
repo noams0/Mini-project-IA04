@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/noams0/Mini-project-IA04/agt"
+	"github.com/noams0/Mini-project-IA04/comsoc"
 	"time"
-	agt "tp3/agt"
-	"tp3/comsoc"
 )
 
 func main() {

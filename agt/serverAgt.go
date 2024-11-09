@@ -4,11 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/noams0/Mini-project-IA04/comsoc"
 	"log"
 	"net/http"
 	"time"
-	rad "tp3"
-	"tp3/comsoc"
 )
 
 func NewServerRestAgent(addr string) *ServerRestAgent {
@@ -37,21 +36,21 @@ func (rsa *ServerRestAgent) checkMethod(method string, w http.ResponseWriter, r 
 	return true
 }
 
-func (*ServerRestAgent) decodeRequestBallot(r *http.Request) (req rad.NewBallotRequest, err error) {
+func (*ServerRestAgent) decodeRequestBallot(r *http.Request) (req NewBallotRequest, err error) {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(r.Body)
 	err = json.Unmarshal(buf.Bytes(), &req)
 	return
 }
 
-func (*ServerRestAgent) decodeRequestVote(r *http.Request) (req rad.VoteRequest, err error) {
+func (*ServerRestAgent) decodeRequestVote(r *http.Request) (req VoteRequest, err error) {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(r.Body)
 	err = json.Unmarshal(buf.Bytes(), &req)
 	return
 }
 
-func (*ServerRestAgent) decodeRequestResult(r *http.Request) (req rad.ResultsRequest, err error) {
+func (*ServerRestAgent) decodeRequestResult(r *http.Request) (req ResultsRequest, err error) {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(r.Body)
 	err = json.Unmarshal(buf.Bytes(), &req)
@@ -143,7 +142,7 @@ func (rsa *ServerRestAgent) newBallotRest(w http.ResponseWriter, r *http.Request
 	}
 	rsa.ballotAgents[newBallot.ballotID] = &newBallot
 
-	var resp rad.NewBallotResponse
+	var resp NewBallotResponse
 	resp.BallotID = ballotName
 	rsa.count++
 	w.WriteHeader(http.StatusCreated)
@@ -278,7 +277,7 @@ func (rsa *ServerRestAgent) results(w http.ResponseWriter, r *http.Request) {
 		winner, _ = ballotWanted.ruleSCF(ballotWanted.profile, ballotWanted.thresholds)
 	}
 
-	var resp rad.ResultResponse
+	var resp ResultResponse
 	resp.Ranking = comsoc.TransformInt(ranking)
 	resp.Winner = int(winner)
 

@@ -4,10 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/noams0/Mini-project-IA04/comsoc"
 	"log"
 	"net/http"
-	rad "tp3"
-	"tp3/comsoc"
 )
 
 func NewAgent(id string, prefs []comsoc.Alternative, options []int) *Agent {
@@ -31,19 +30,19 @@ func (ag Agent) String() string {
 	return fmt.Sprintf("ID : %s, Preferences : %v, Options : %v", ag.agentId, ag.prefs, ag.options)
 }
 
-func (ad Admin) DecodeNewBallotResponse(r *http.Response) (rad.NewBallotResponse, error) {
+func (ad Admin) DecodeNewBallotResponse(r *http.Response) (NewBallotResponse, error) {
 	buf := new(bytes.Buffer)
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
-		return rad.NewBallotResponse{}, err
+		return NewBallotResponse{}, err
 	}
 
-	var resp rad.NewBallotResponse
+	var resp NewBallotResponse
 
 	err = json.Unmarshal(buf.Bytes(), &resp)
 	if err != nil {
 		fmt.Println("failed unmarshalling")
-		return rad.NewBallotResponse{}, err
+		return NewBallotResponse{}, err
 	}
 
 	return resp, nil
@@ -53,7 +52,7 @@ func (ad Admin) StartVotingSession(rule string, deadline string, voterIds []stri
 
 	requestURL := "http://localhost:8080/new_ballot"
 
-	session := rad.NewBallotRequest{
+	session := NewBallotRequest{
 		Rule:     rule,
 		Deadline: deadline,
 		VoterIds: voterIds,
@@ -90,7 +89,7 @@ func (ag Agent) Vote(sessionID string) {
 
 	PrefsInt := comsoc.TransformInt(ag.prefs)
 
-	vote := rad.VoteRequest{
+	vote := VoteRequest{
 		AgentID:  ag.agentId,
 		BallotID: sessionID,
 		Prefs:    PrefsInt,
@@ -118,7 +117,7 @@ func (ag Agent) Vote(sessionID string) {
 func (ad Admin) GetResults(sessionID string) {
 
 	requestURL := "http://localhost:8080/results"
-	obj := rad.ResultsRequest{BallotID: sessionID}
+	obj := ResultsRequest{BallotID: sessionID}
 	data, _ := json.Marshal(obj)
 
 	resp, err := http.Post(requestURL, "application/json", bytes.NewBuffer(data))
@@ -140,7 +139,7 @@ func (ad Admin) GetResults(sessionID string) {
 		return
 	}
 
-	var result rad.ResultResponse
+	var result ResultResponse
 	result.Ranking = make([]int, 0)
 	err = json.Unmarshal(buf.Bytes(), &result)
 

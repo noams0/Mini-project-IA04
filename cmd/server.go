@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	agt "tp3/agt"
+	"github.com/noams0/Mini-project-IA04/agt"
 )
 
 func main() {

@@ -2,9 +2,9 @@ package agt
 
 import (
 	"fmt"
+	"github.com/noams0/Mini-project-IA04/comsoc"
 	"testing"
 	"time"
-	"tp3/comsoc"
 )
 
 func TestGeneralExceptionsOptionsVote(t *testing.T) {
