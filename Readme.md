@@ -18,7 +18,22 @@ Pour installer automatiquement ce serveur de vote, exécutez la commande suivant
 go get github.com/noams0/Mini-project-IA04
 ```
 
-## II - Méthodes de votes
+## II - Démarrage du serveur et des agents
+
+### Lancer le serveur
+
+Pour démarrer le serveur, utilisez la commande suivante :
+`go run cmd/server.go`
+
+Le serveur sera lancé et écoutera les requêtes REST pour la création de scrutins, l’enregistrement de votes, et la récupération des résultats.
+
+### Lancer les agents
+Une fois le serveur lancé, vous pouvez soit effectué des véritable requêtes ou les lancer automatiquement avec la commande suivante :
+`go run cmd/launchAgent.go`
+
+Cette commande permet d’initier les agents, d'envoyer les votes au serveur et de récupérer les résultats une fois le vote terminé.
+
+## III - Méthodes de votes
 
 Le serveur prend en charge plusieurs méthodes de vote, accessibles en spécifiant le nom de la méthode lors de la configuration.
 
@@ -57,7 +72,7 @@ La méthode de consensus de Kemeny est disponible avec la règle `"kemeny"`. Cet
 Voici un complément pour ton fichier README en ajoutant des sections pour expliquer la structure du projet et les commandes :
 
 
-## III - Structure du projet
+## IV - Structure du projet
 
 Le projet est structuré en plusieurs dossiers principaux pour organiser les différentes fonctionnalités :
 
@@ -69,23 +84,7 @@ Le projet est structuré en plusieurs dossiers principaux pour organiser les dif
 - `server` : Permet de démarrer le serveur de vote.
 - `launchAgent` : Utilisé pour initier les agents votants, enregistrer les votes, et récupérer les résultats une fois le scrutin terminé.
 
-## IV - Démarrage du serveur et des agents
-
-### Lancer le serveur
-
-Pour démarrer le serveur, utilisez la commande suivante :
-`go run cmd/server.go`
-
-Le serveur sera lancé et écoutera les requêtes REST pour la création de scrutins, l’enregistrement de votes, et la récupération des résultats.
-
-### Lancer les agents
-Une fois le serveur lancé, vous pouvez soit effectué des véritable requêtes ou les lancer automatiquement avec la commande suivante :
-`go run cmd/launchAgent.go`
-
-Cette commande permet d’initier les agents, d'envoyer les votes au serveur et de récupérer les résultats une fois le vote terminé.
-
-
-### Les requêtes 
+## V - Les requêtes 
 
 ### Commande `/new_ballot`
 
@@ -109,6 +108,7 @@ Cette commande permet d’initier les agents, d'envoyer les votes au serveur et 
 | `201`       | vote créé     |
 | `400`       | bad request   |
 | `501` 	  | not implemented |
+
 *Exemple concret*
 
 ```Json
@@ -162,6 +162,7 @@ le seuil du nombre de candidats pour lequel l'agent votant donne son approval
 | `501` 	  | Not Implemented      |
 | `503`       | la deadline est dépassée |
 
+
 *Exemple concret* 
 
 ```Json
@@ -213,3 +214,57 @@ Au niveau du fichier launchAgent, on récupère cela grâce à l'administrator :
 ```go
 administrator.GetResults(ballot)
 ```
+
+## VI - Les principaux types
+
+### 1. `ServerRestAgent`
+
+Le type `ServerRestAgent` représente le serveur REST qui gère les agents de vote et les scrutins.
+
+- **Attributs** :
+    - `sync.Mutex` : Permet de verrouiller l'accès concurrentiel au serveur.
+    - `id` (`string`) : Identifiant unique du serveur.
+    - `addr` (`string`) : Adresse à laquelle le serveur écoute.
+    - `ballotAgents` (`map[string]*ballotAgent`) : Map associant chaque `ballotID` à un objet `ballotAgent`.
+    - `count` (`int64`) : Compteur pour les actions ou les agents gérés par le serveur.
+
+- **Rôle** : Le `ServerRestAgent` gère la création et le suivi des scrutins (`ballotAgents`) et les interactions REST avec les agents de vote.
+
+### 2. `ballotAgent`
+
+Le type `ballotAgent` représente un scrutin individuel, y compris ses règles, ses alternatives, et ses préférences de votants.
+
+- **Attributs** :
+    - `sync.Mutex` : Verrou pour gérer l'accès concurrentiel.
+    - `ballotID` (`string`) : Identifiant unique du scrutin.
+    - `rulename` (`string`) : Nom de la règle de vote (ex. : majorité, points, etc.).
+    - `ruleSWF` (`func(comsoc.Profile, []int) ([]comsoc.Alternative, error)`) : Fonction pour calculer le gagnant du scrutin selon les règles du Social Welfare Function (SWF).
+    - `ruleSCF` (`func(comsoc.Profile, []int) (comsoc.Alternative, error)`) : Fonction pour calculer le gagnant du scrutin selon les règles du Social Choice Function (SCF).
+    - `deadline` (`time.Time`) : Date limite pour la soumission des votes.
+    - `voterID` (`map[string]bool`) : Liste des votants autorisés, associée à un booléen indiquant s'ils ont voté.
+    - `profile` (`comsoc.Profile`) : Profils de préférences collectées auprès des votants.
+    - `alternatives` (`[]comsoc.Alternative`) : Liste des alternatives disponibles dans ce scrutin.
+    - `tiebreak` (`[]comsoc.Alternative`) : Règles de départage en cas d'égalité.
+    - `thresholds` (`[]int`) : Seuils de score nécessaires pour certaines règles de vote.
+
+- **Rôle** : Le `ballotAgent` gère les informations d'un scrutin, y compris les règles et les préférences des votants, et fournit les fonctions nécessaires pour déterminer les gagnants.
+
+### 3. `Agent`
+
+Le type `Agent` représente un agent de vote qui soumet ses préférences pour un scrutin.
+
+- **Attributs** :
+    - `agentId` (`string`) : Identifiant unique de l'agent.
+    - `prefs` (`[]comsoc.Alternative`) : Liste ordonnée des préférences de l'agent pour les alternatives.
+    - `options` (`[]int`) : Sert à donner le nombre d'approval
+
+- **Rôle** : Un `Agent` représente un participant à des scrutin. 
+
+### 4. `Admin`
+
+Le type `Admin` représente un administrateur qui peut gérer ou surveiller les scrutins.
+
+- **Attributs** :
+    - `agentId` (`string`) : Identifiant unique de l'administrateur.
+
+- **Rôle** : `Admin` est un utilisateur qui peut créer des scrutins ainsi qu'obtenir leur résultat

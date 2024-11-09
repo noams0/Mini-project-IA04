@@ -1,4 +1,4 @@
-module tp3
+module github.com/noams0/Mini-project-IA04
 
 go 1.22.2
 
